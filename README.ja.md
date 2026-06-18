@@ -40,7 +40,12 @@
 | 02 | [**複雑なタスクの spec の書き方**](./ja/02-how-to-write-specs.md) | マルチ agent のオーケストレーション・オーケストレーターエントリポイント・rules / docs / skills の整理方法 |
 | 03 | [**harness の拡張方法**](./ja/03-extending-the-harness.md) | skill・設定ディレクトリ・hook——Claude Code と Codex の二つの拡張モデル |
 | 04 | [**agent の制御：権限と effort**](./ja/04-permissions-and-effort.md) | コントロールサーフェス——権限モードと reasoning effort——の Claude Code と Codex 比較 |
-| 05 | *長いタスクを乗り切る：Compaction・Memory・Goals* | 近日公開 |
+| 05 | [**Spec と知識ベース：エージェントが本当に読み、従っているか確かめる**](./ja/05-knowledge-base.md) | 知識ベースがエージェントに届く経路；紐付け ≠ ロード ≠ 読まれた ≠ 遵守、そして検証の仕方 |
+| 06 | *長いタスクを乗り切る：Compaction・Memory・Goals* | 近日公開 |
+
+## 関連トピック
+
+- [**AI-Ready と AI-SDLC について**](./ja/ai-ready.md) —— Agents プラットフォームを煮詰める前に、まず工学を AI-Ready にする（独立した小編、シリーズ章ではない）
 
 ## ひとつのアイデア
 

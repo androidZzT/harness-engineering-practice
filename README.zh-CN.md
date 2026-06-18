@@ -40,7 +40,12 @@
 | 02 | [**复杂任务的 Spec 怎么写**](./zh/02-how-to-write-specs.md) | 多 Agent 编排、编排者入口、rules / docs / skills 怎么组织 |
 | 03 | [**Harness 怎么扩展**](./zh/03-extending-the-harness.md) | skill、配置目录、hook —— CC 与 Codex 的两套扩展机制 |
 | 04 | [**Harness 怎么拿捏 agent：权限与 effort**](./zh/04-permissions-and-effort.md) | 控制面 —— 权限模式与 reasoning effort，CC 与 Codex 对比 |
-| 05 | *Harness 怎么扛住长任务：compact、memory、goal* | 写作中 |
+| 05 | [**Spec 和知识库：怎么确认 agent 真读到、真遵守**](./zh/05-knowledge-base.md) | 接知识库的几种途径；关联 ≠ 加载 ≠ 读到 ≠ 遵守，以及怎么验证 |
+| 06 | *Harness 怎么扛住长任务：compact、memory、goal* | 写作中 |
+
+## 相关主题
+
+- [**谈谈 AI-Ready 和 AI-SDLC**](./zh/ai-ready.md) —— 卷 Agents 协同平台之前，先把工程做成 AI-Ready（独立短文，非系列章节）
 
 ## 记住一句话
 

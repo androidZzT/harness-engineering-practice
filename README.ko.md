@@ -40,7 +40,12 @@
 | 02 | [**복잡한 작업의 Spec은 어떻게 쓰는가**](./ko/02-how-to-write-specs.md) | 멀티 agent 편성、편성자 진입점、rules / docs / skills 구성 방법 |
 | 03 | [**Harness는 어떻게 확장하는가**](./ko/03-extending-the-harness.md) | skill、설정 디렉토리、hook — Claude Code와 Codex의 두 가지 확장 모델 |
 | 04 | [**Harness는 어떻게 agent를 제어하는가：권한과 Effort**](./ko/04-permissions-and-effort.md) | 제어 면 — 권한 모드와 reasoning effort — Claude Code와 Codex 비교 |
-| 05 | *긴 작업을 버티는 방법：Compaction、Memory、Goals* | 출시 예정 |
+| 05 | [**Spec와 지식 베이스: 에이전트가 정말 읽고 따르는지 확인하기**](./ko/05-knowledge-base.md) | 지식 베이스가 에이전트에 닿는 경로；연결 ≠ 로드 ≠ 읽힘 ≠ 준수, 그리고 검증하는 법 |
+| 06 | *긴 작업을 버티는 방법：Compaction、Memory、Goals* | 출시 예정 |
+
+## 관련 주제
+
+- [**AI-Ready와 AI-SDLC에 대하여**](./ko/ai-ready.md) —— Agents 플랫폼을 파고들기 전에, 먼저 엔지니어링을 AI-Ready로 (독립 단편, 시리즈 장 아님)
 
 ## 핵심 아이디어
 

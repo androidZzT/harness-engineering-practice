@@ -40,7 +40,12 @@ This is a hands-on, source-grounded series comparing how the two harnesses most 
 | 02 | [**How to Write Specs for Complex Tasks**](./en/02-how-to-write-specs.md) | Multi-agent orchestration, the orchestrator entry point, and how to organize rules / docs / skills |
 | 03 | [**Extending the Harness**](./en/03-extending-the-harness.md) | Skills, configuration directories, and hooks — the two extension models of Claude Code vs. Codex |
 | 04 | [**Controlling the Agent: Permissions & Effort**](./en/04-permissions-and-effort.md) | The control surface — permission modes and reasoning effort — compared across Claude Code and Codex |
-| 05 | *Surviving Long Tasks: Compaction, Memory, Goals* | Coming soon |
+| 05 | [**Spec and Knowledge Base: Making Sure the Agent Reads and Obeys**](./en/05-knowledge-base.md) | The ways a knowledge base reaches the agent; Linked ≠ Loaded ≠ Read ≠ Obeyed, and how to verify |
+| 06 | *Surviving Long Tasks: Compaction, Memory, Goals* | Coming soon |
+
+## Adjacent topics
+
+- [**On AI-Ready and AI-SDLC**](./en/ai-ready.md) — before grinding on an Agents platform, make your engineering AI-Ready first (a standalone piece, not a series chapter)
 
 ## The one idea
 
