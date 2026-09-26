@@ -46,6 +46,7 @@
 ## 関連トピック
 
 - [**AI-Ready と AI-SDLC について**](./ja/ai-ready.md) —— Agents プラットフォームを煮詰める前に、まず工学を AI-Ready にする（独立した小編、シリーズ章ではない）
+- [**LLM と Agent のコア概念**](./core-concepts/README.md) —— LLM API から Harness Engineering まで 14 本の原理解説シリーズ（中国語のみ）
 
 ## ひとつのアイデア
 

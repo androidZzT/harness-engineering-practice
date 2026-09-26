@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/></pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/></filter>
+    <marker id="arrow-slate" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#475569"/></marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .tiny { font-size: 12px; fill: #64748b; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="#ffffff"/>
+  <rect width="1440" height="900" fill="url(#paper)"/>
+  <text x="55" y="55" class="title">LLM 与 Agent 知识地图：四层结构与三门工程学科</text>
+  <text x="55" y="83" class="subtitle">自下而上，每一层假设下层可用并补上缺失的能力；Prompt ⊂ Context ⊂ Harness 贯穿全部四层</text>
+
+  <rect x="45" y="120" width="1015" height="150" rx="22" fill="#fdf2f8" stroke="#db2777" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="70" y="188" class="region-title" fill="#db2777">④ 协作与编排层</text>
+  <text x="70" y="215" class="tiny">任务怎么拆给别的 Agent</text>
+  <rect x="290" y="159" width="170" height="72" rx="14" fill="#ffffff" stroke="#db2777" stroke-width="2" filter="url(#rough)"/>
+  <text x="375" y="189" class="node-title" text-anchor="middle">10 Subagent</text>
+  <text x="375" y="213" class="node-sub" text-anchor="middle">委派与上下文隔离</text>
+  <rect x="480" y="159" width="170" height="72" rx="14" fill="#ffffff" stroke="#db2777" stroke-width="2" filter="url(#rough)"/>
+  <text x="565" y="189" class="node-title" text-anchor="middle">11 Multi-Agent</text>
+  <text x="565" y="213" class="node-sub" text-anchor="middle">系统级编排模式</text>
+  <rect x="45" y="290" width="1015" height="150" rx="22" fill="#faf5ff" stroke="#7c3aed" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="70" y="358" class="region-title" fill="#7c3aed">③ 能力与状态扩展层</text>
+  <text x="70" y="385" class="tiny">能力接入与信息保留</text>
+  <rect x="290" y="329" width="170" height="72" rx="14" fill="#ffffff" stroke="#7c3aed" stroke-width="2" filter="url(#rough)"/>
+  <text x="375" y="359" class="node-title" text-anchor="middle">07 Skills</text>
+  <text x="375" y="383" class="node-sub" text-anchor="middle">指令与脚本按需加载</text>
+  <rect x="480" y="329" width="170" height="72" rx="14" fill="#ffffff" stroke="#7c3aed" stroke-width="2" filter="url(#rough)"/>
+  <text x="565" y="359" class="node-title" text-anchor="middle">08 MCP</text>
+  <text x="565" y="383" class="node-sub" text-anchor="middle">工具发现与传输协议</text>
+  <rect x="670" y="329" width="170" height="72" rx="14" fill="#ffffff" stroke="#7c3aed" stroke-width="2" filter="url(#rough)"/>
+  <text x="755" y="359" class="node-title" text-anchor="middle">09 Memory</text>
+  <text x="755" y="383" class="node-sub" text-anchor="middle">跨会话信息保留</text>
+  <rect x="45" y="460" width="1015" height="150" rx="22" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="70" y="528" class="region-title" fill="#16a34a">② 单 Agent 运行层</text>
+  <text x="70" y="555" class="tiny">多轮行动与先想后做</text>
+  <rect x="290" y="499" width="170" height="72" rx="14" fill="#ffffff" stroke="#16a34a" stroke-width="2" filter="url(#rough)"/>
+  <text x="375" y="529" class="node-title" text-anchor="middle">03 Agent Loop</text>
+  <text x="375" y="553" class="node-sub" text-anchor="middle">多轮行动循环</text>
+  <rect x="480" y="499" width="170" height="72" rx="14" fill="#ffffff" stroke="#16a34a" stroke-width="2" filter="url(#rough)"/>
+  <text x="565" y="529" class="node-title" text-anchor="middle">04 Tool Use</text>
+  <text x="565" y="553" class="node-sub" text-anchor="middle">调用外部能力</text>
+  <rect x="670" y="499" width="170" height="72" rx="14" fill="#ffffff" stroke="#16a34a" stroke-width="2" filter="url(#rough)"/>
+  <text x="755" y="529" class="node-title" text-anchor="middle">05 Reasoning</text>
+  <text x="755" y="553" class="node-sub" text-anchor="middle">一次生成内的推理</text>
+  <rect x="860" y="499" width="170" height="72" rx="14" fill="#ffffff" stroke="#16a34a" stroke-width="2" filter="url(#rough)"/>
+  <text x="945" y="529" class="node-title" text-anchor="middle">06 Planning</text>
+  <text x="945" y="553" class="node-sub" text-anchor="middle">外部化的步骤列表</text>
+  <rect x="45" y="630" width="1015" height="150" rx="22" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="70" y="698" class="region-title" fill="#2563eb">① 模型接口层</text>
+  <text x="70" y="725" class="tiny">一次推理怎么发起与计量</text>
+  <rect x="290" y="669" width="170" height="72" rx="14" fill="#ffffff" stroke="#2563eb" stroke-width="2" filter="url(#rough)"/>
+  <text x="375" y="699" class="node-title" text-anchor="middle">01 LLM API</text>
+  <text x="375" y="723" class="node-sub" text-anchor="middle">无状态调用与计量</text>
+  <rect x="480" y="669" width="170" height="72" rx="14" fill="#ffffff" stroke="#2563eb" stroke-width="2" filter="url(#rough)"/>
+  <text x="565" y="699" class="node-title" text-anchor="middle">02 KV Cache</text>
+  <text x="565" y="723" class="node-sub" text-anchor="middle">前缀计算复用</text>
+  <rect x="1095" y="120" width="300" height="660" rx="24" fill="#fffaf2" stroke="#ea580c" stroke-width="2.4" filter="url(#rough)"/>
+  <text x="1245" y="156" class="region-title" fill="#ea580c" text-anchor="middle">14 Harness Engineering</text>
+  <text x="1245" y="181" class="tiny" text-anchor="middle">模型之外的整套运行系统</text>
+  <text x="1245" y="201" class="tiny" text-anchor="middle">循环 · 工具权限 · 沙箱 · 状态 · 评测 · 观测</text>
+  <rect x="1120" y="235" width="250" height="525" rx="20" fill="#faf5ff" stroke="#7c3aed" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="1245" y="271" class="region-title" fill="#7c3aed" text-anchor="middle">13 Context Engineering</text>
+  <text x="1245" y="296" class="tiny" text-anchor="middle">每一轮模型可见的全部 Token</text>
+  <text x="1245" y="316" class="tiny" text-anchor="middle">选择 · 压缩 · 隔离 · 写出</text>
+  <rect x="1145" y="350" width="200" height="390" rx="18" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="1245" y="386" class="region-title" fill="#2563eb" text-anchor="middle">12 Prompt</text>
+  <text x="1245" y="410" class="region-title" fill="#2563eb" text-anchor="middle">Engineering</text>
+  <text x="1245" y="440" class="tiny" text-anchor="middle">指令 · 示例 · 格式约束</text>
+  <text x="1245" y="600" class="node-sub" text-anchor="middle">Prompt ⊂ Context</text>
+  <text x="1245" y="624" class="node-sub" text-anchor="middle">⊂ Harness</text>
+  <rect x="45" y="810" width="1350" height="56" rx="16" fill="#ffffff" stroke="#db2777" stroke-width="2" stroke-dasharray="7 5" filter="url(#rough)"/>
+  <text x="720" y="845" class="node-title" text-anchor="middle" style="fill:#db2777">底层约束：API 无状态，每轮重发上下文 · 上下文窗口有限，按 Token 计费</text>
+</svg>

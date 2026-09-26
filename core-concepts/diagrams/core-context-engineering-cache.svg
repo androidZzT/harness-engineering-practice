@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 800">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .row-title { font-size: 16px; font-weight: 700; }
+      .row-sub { font-size: 12.5px; fill: #64748b; }
+      .seg { font-size: 14px; font-weight: 600; }
+      .caption { font-size: 13.5px; fill: #475569; }
+      .tiny { font-size: 12.5px; fill: #64748b; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="800" fill="#ffffff"/>
+  <rect width="1440" height="800" fill="url(#paper)"/>
+
+  <text x="40" y="55" class="title">稳定前缀与只追加：上下文布局决定缓存命中</text>
+  <text x="40" y="83" class="subtitle">缓存按 tools → system → messages 的前缀逐 Token 匹配；改写任何位置，其后的内容都要重新计算</text>
+
+  <!-- Row 1 -->
+  <text x="40" y="170" class="row-title">请求 N</text>
+  <text x="40" y="192" class="row-sub">首轮建立缓存</text>
+  <rect x="220" y="145" width="120" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="280" y="183" class="seg" text-anchor="middle">tools</text>
+  <rect x="340" y="145" width="140" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="410" y="183" class="seg" text-anchor="middle">system</text>
+  <rect x="480" y="145" width="170" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="565" y="183" class="seg" text-anchor="middle">初始上下文</text>
+  <rect x="650" y="145" width="150" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="725" y="183" class="seg" text-anchor="middle">turn 1</text>
+  <rect x="800" y="145" width="150" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="875" y="183" class="seg" text-anchor="middle">turn 2</text>
+  <text x="220" y="236" class="caption">全部计算一次，写入缓存</text>
+
+  <!-- Row 2 -->
+  <text x="40" y="310" class="row-title">请求 N+1</text>
+  <text x="40" y="332" class="row-sub">只追加</text>
+  <rect x="220" y="285" width="120" height="64" rx="8" fill="#f0fdf4" stroke="#34d399" stroke-width="1.8"/>
+  <text x="280" y="323" class="seg" text-anchor="middle">tools</text>
+  <rect x="340" y="285" width="140" height="64" rx="8" fill="#f0fdf4" stroke="#34d399" stroke-width="1.8"/>
+  <text x="410" y="323" class="seg" text-anchor="middle">system</text>
+  <rect x="480" y="285" width="170" height="64" rx="8" fill="#f0fdf4" stroke="#34d399" stroke-width="1.8"/>
+  <text x="565" y="323" class="seg" text-anchor="middle">初始上下文</text>
+  <rect x="650" y="285" width="150" height="64" rx="8" fill="#f0fdf4" stroke="#34d399" stroke-width="1.8"/>
+  <text x="725" y="323" class="seg" text-anchor="middle">turn 1</text>
+  <rect x="800" y="285" width="150" height="64" rx="8" fill="#f0fdf4" stroke="#34d399" stroke-width="1.8"/>
+  <text x="875" y="323" class="seg" text-anchor="middle">turn 2</text>
+  <rect x="950" y="285" width="170" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8" stroke-dasharray="6 4"/>
+  <text x="1035" y="314" class="seg" text-anchor="middle">差异消息</text>
+  <text x="1035" y="336" class="tiny" text-anchor="middle">权限 / 环境变更</text>
+  <rect x="1120" y="285" width="150" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8" stroke-dasharray="6 4"/>
+  <text x="1195" y="323" class="seg" text-anchor="middle">turn 3</text>
+  <text x="220" y="376" class="caption">前缀全部命中，只计算末尾新增；变更以差异追加，不改写初始上下文（Codex 的做法）</text>
+
+  <!-- Row 3 -->
+  <text x="40" y="450" class="row-title">请求 N+2</text>
+  <text x="40" y="472" class="row-sub">压缩之后</text>
+  <rect x="220" y="425" width="120" height="64" rx="8" fill="#f0fdf4" stroke="#34d399" stroke-width="1.8"/>
+  <text x="280" y="463" class="seg" text-anchor="middle">tools</text>
+  <rect x="340" y="425" width="140" height="64" rx="8" fill="#f0fdf4" stroke="#34d399" stroke-width="1.8"/>
+  <text x="410" y="463" class="seg" text-anchor="middle">system</text>
+  <rect x="480" y="425" width="170" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="565" y="454" class="seg" text-anchor="middle">初始上下文</text>
+  <text x="565" y="476" class="tiny" text-anchor="middle">重新注入</text>
+  <rect x="650" y="425" width="220" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="760" y="454" class="seg" text-anchor="middle">近期用户原话</text>
+  <text x="760" y="476" class="tiny" text-anchor="middle">Codex 最多 2 万 Token</text>
+  <rect x="870" y="425" width="190" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="965" y="463" class="seg" text-anchor="middle">交接摘要</text>
+  <text x="220" y="516" class="caption">tools 与 system 仍命中，历史部分整体重算；频繁小幅压缩会反复付出这笔成本</text>
+
+  <!-- Row 4 counter example -->
+  <text x="40" y="590" class="row-title" fill="#be123c">反例</text>
+  <text x="40" y="612" class="row-sub">中途改动工具定义</text>
+  <rect x="220" y="565" width="120" height="64" rx="8" fill="#fff1f2" stroke="#fb7185" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="280" y="594" class="seg" text-anchor="middle">tools′</text>
+  <text x="280" y="616" class="tiny" text-anchor="middle">增删工具</text>
+  <rect x="340" y="565" width="140" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="410" y="603" class="seg" text-anchor="middle">system</text>
+  <rect x="480" y="565" width="170" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="565" y="603" class="seg" text-anchor="middle">初始上下文</text>
+  <rect x="650" y="565" width="150" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="725" y="603" class="seg" text-anchor="middle">turn 1</text>
+  <rect x="800" y="565" width="150" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="875" y="603" class="seg" text-anchor="middle">turn 2</text>
+  <rect x="950" y="565" width="170" height="64" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="1035" y="603" class="seg" text-anchor="middle">…</text>
+  <text x="220" y="656" class="caption">最前面的 tools 段一变，后面所有内容都无法命中；同理，把每轮检索结果放进 system 也会让缓存持续失效</text>
+
+  <!-- Legend -->
+  <rect x="40" y="700" width="1360" height="62" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+  <rect x="70" y="719" width="40" height="24" rx="6" fill="#f0fdf4" stroke="#34d399" stroke-width="1.8"/>
+  <text x="122" y="737" class="caption">缓存命中</text>
+  <rect x="260" y="719" width="40" height="24" rx="6" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="312" y="737" class="caption">重新计算</text>
+  <rect x="450" y="719" width="40" height="24" rx="6" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8" stroke-dasharray="6 4"/>
+  <text x="502" y="737" class="caption">本轮新增或改动</text>
+  <text x="1380" y="737" class="tiny" text-anchor="end">段宽为示意，不代表真实 Token 占比</text>
+</svg>

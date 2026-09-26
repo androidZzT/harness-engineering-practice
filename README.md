@@ -46,6 +46,7 @@ This is a hands-on, source-grounded series comparing how the two harnesses most 
 ## Adjacent topics
 
 - [**On AI-Ready and AI-SDLC**](./en/ai-ready.md) — before grinding on an Agents platform, make your engineering AI-Ready first (a standalone piece, not a series chapter)
+- [**LLM & Agent Core Concepts**](./core-concepts/README.md) — a companion series of 14 deep dives (LLM API, KV Cache, Agent Loop, Tool Use, Reasoning, Planning, Skills, MCP, Memory, Subagent, Multi-Agent, Prompt / Context / Harness Engineering). Chinese only.
 
 ## The one idea
 

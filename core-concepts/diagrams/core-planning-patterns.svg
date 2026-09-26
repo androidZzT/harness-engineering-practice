@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 700">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-dark" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#334155"/></marker>
+    <marker id="arrow-blue" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#2563eb"/></marker>
+    <marker id="arrow-green" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#16a34a"/></marker>
+    <marker id="arrow-pink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#db2777"/></marker>
+    <marker id="arrow-orange" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#ea580c"/></marker>
+    <marker id="arrow-purple" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#7c3aed"/></marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .tiny { font-size: 12px; fill: #64748b; }
+      .mono { font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; font-size: 12.5px; fill: #172033; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <rect width="100%" height="100%" fill="url(#paper)"/>
+  <text x="55" y="55" class="title">规划模式对比：规划与执行如何耦合</text>
+  <text x="55" y="83" class="subtitle">差别在三处：何时生成计划、观察结果是否回到规划者、失败后在哪一层修正</text>
+
+  <rect x="45" y="115" width="315" height="505" rx="24" fill="#f8fbff" stroke="#60a5fa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <rect x="390" y="115" width="315" height="505" rx="24" fill="#f5fdf8" stroke="#34d399" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <rect x="735" y="115" width="315" height="505" rx="24" fill="#fffaf2" stroke="#fb923c" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <rect x="1080" y="115" width="315" height="505" rx="24" fill="#fbf9ff" stroke="#a78bfa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+
+  <!-- ReAct connectors -->
+  <path d="M202 229 V261" class="line" stroke="#2563eb" stroke-width="2.4" marker-end="url(#arrow-blue)"/>
+  <path d="M202 309 V341" class="line" stroke="#2563eb" stroke-width="2.4" marker-end="url(#arrow-blue)"/>
+  <path d="M202 389 V461" class="line" stroke="#2563eb" stroke-width="2.4" marker-end="url(#arrow-blue)"/>
+  <path d="M112 367 H80 V207 H108" class="line" stroke="#db2777" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrow-pink)"/>
+
+  <!-- Plan-and-Execute connectors -->
+  <path d="M547 229 V251" class="line" stroke="#16a34a" stroke-width="2.4" marker-end="url(#arrow-green)"/>
+  <path d="M547 335 V371" class="line" stroke="#16a34a" stroke-width="2.4" marker-end="url(#arrow-green)"/>
+  <path d="M547 419 V461" class="line" stroke="#16a34a" stroke-width="2.4" marker-end="url(#arrow-green)"/>
+  <path d="M637 397 H675 V207 H641" class="line" stroke="#db2777" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrow-pink)"/>
+
+  <!-- ReWOO connectors -->
+  <path d="M892 229 V251" class="line" stroke="#ea580c" stroke-width="2.4" marker-end="url(#arrow-orange)"/>
+  <path d="M892 335 V371" class="line" stroke="#ea580c" stroke-width="2.4" marker-end="url(#arrow-orange)"/>
+  <path d="M892 419 V461" class="line" stroke="#ea580c" stroke-width="2.4" marker-end="url(#arrow-orange)"/>
+
+  <!-- Reflexion connectors -->
+  <path d="M1237 229 V261" class="line" stroke="#7c3aed" stroke-width="2.4" marker-end="url(#arrow-purple)"/>
+  <path d="M1237 309 V341" class="line" stroke="#7c3aed" stroke-width="2.4" marker-end="url(#arrow-purple)"/>
+  <path d="M1237 389 V421" class="line" stroke="#7c3aed" stroke-width="2.4" marker-end="url(#arrow-purple)"/>
+  <path d="M1327 447 H1365 V207 H1331" class="line" stroke="#db2777" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrow-pink)"/>
+
+  <!-- ReAct nodes -->
+  <text x="65" y="150" class="region-title" fill="#2563eb">① ReAct 边做边想</text>
+  <rect x="112" y="185" width="180" height="44" rx="12" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="202" y="213" class="node-title" text-anchor="middle">Thought</text>
+  <rect x="112" y="265" width="180" height="44" rx="12" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="202" y="293" class="node-title" text-anchor="middle">Action</text>
+  <rect x="112" y="345" width="180" height="44" rx="12" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="202" y="373" class="node-title" text-anchor="middle">Observation</text>
+  <text x="210" y="432" class="tiny">不再需要行动</text>
+  <rect x="112" y="465" width="180" height="44" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <text x="202" y="493" class="node-title" text-anchor="middle">最终回答</text>
+  <text x="202" y="556" class="node-sub" text-anchor="middle">每步一次调用 · 对变化反应快</text>
+  <text x="202" y="580" class="tiny" text-anchor="middle">没有显式全局计划，长任务易丢目标</text>
+
+  <!-- Plan-and-Execute nodes -->
+  <text x="410" y="150" class="region-title" fill="#16a34a">② Plan-and-Execute</text>
+  <rect x="457" y="185" width="180" height="44" rx="12" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+  <text x="547" y="213" class="node-title" text-anchor="middle">规划器（强模型）</text>
+  <rect x="457" y="255" width="180" height="80" rx="12" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+  <text x="475" y="280" class="mono">1 [x] 定位调用点</text>
+  <text x="475" y="302" class="mono">2 [&gt;] 修改接口</text>
+  <text x="475" y="324" class="mono">3 [ ] 跑契约测试</text>
+  <rect x="457" y="375" width="180" height="44" rx="12" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+  <text x="547" y="403" class="node-title" text-anchor="middle">执行器逐步完成</text>
+  <rect x="457" y="465" width="180" height="44" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.2"/>
+  <text x="547" y="493" class="node-title" text-anchor="middle">全部步骤验收</text>
+  <text x="547" y="556" class="node-sub" text-anchor="middle">少量规划调用 + 多次执行</text>
+  <text x="547" y="580" class="tiny" text-anchor="middle">失败或偏离时回到规划器重规划</text>
+
+  <!-- ReWOO nodes -->
+  <text x="755" y="150" class="region-title" fill="#ea580c">③ ReWOO 预先写定</text>
+  <rect x="802" y="185" width="180" height="44" rx="12" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+  <text x="892" y="213" class="node-title" text-anchor="middle">规划器（1 次）</text>
+  <rect x="772" y="255" width="240" height="80" rx="12" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+  <text x="790" y="280" class="mono">#E1 = Search[事件]</text>
+  <text x="790" y="302" class="mono">#E2 = LLM[根据 #E1 …]</text>
+  <text x="790" y="324" class="mono" fill="#9a3412">变量引用传递结果</text>
+  <rect x="802" y="375" width="180" height="44" rx="12" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+  <text x="892" y="403" class="node-title" text-anchor="middle">工作器按依赖执行</text>
+  <rect x="802" y="465" width="180" height="44" rx="12" fill="#fff7ed" stroke="#ea580c" stroke-width="2.2"/>
+  <text x="892" y="493" class="node-title" text-anchor="middle">求解器汇总（1 次）</text>
+  <text x="892" y="556" class="node-sub" text-anchor="middle">观察不回到规划器 · 省 Token</text>
+  <text x="892" y="580" class="tiny" text-anchor="middle">计划写定后无法按新信息调整</text>
+
+  <!-- Reflexion nodes -->
+  <text x="1100" y="150" class="region-title" fill="#7c3aed">④ Reflexion 失败后反思</text>
+  <rect x="1147" y="185" width="180" height="44" rx="12" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="1237" y="213" class="node-title" text-anchor="middle">一次完整尝试</text>
+  <rect x="1147" y="265" width="180" height="44" rx="12" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="1237" y="293" class="node-title" text-anchor="middle">评估：测试 / 反馈</text>
+  <rect x="1147" y="345" width="180" height="44" rx="12" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="1237" y="373" class="node-title" text-anchor="middle">写语言反思</text>
+  <rect x="1147" y="425" width="180" height="44" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2.2"/>
+  <text x="1237" y="453" class="node-title" text-anchor="middle">存入情景记忆</text>
+  <text x="1237" y="556" class="node-sub" text-anchor="middle">跨尝试重规划 · 调用随次数倍增</text>
+  <text x="1237" y="580" class="tiny" text-anchor="middle">通过即停止；依赖可靠的失败信号</text>
+
+  <!-- Legend -->
+  <path d="M470 660 H520" class="line" stroke="#334155" stroke-width="2.4" marker-end="url(#arrow-dark)"/>
+  <text x="532" y="665" class="node-sub">主路径</text>
+  <path d="M640 660 H690" class="line" stroke="#db2777" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrow-pink)"/>
+  <text x="702" y="665" class="node-sub">回路：继续下一步 / 重规划 / 下一次尝试</text>
+</svg>

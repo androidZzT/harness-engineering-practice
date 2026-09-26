@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 1010">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-dark" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#1f2937"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#7c3aed"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 28px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .tiny { font-size: 12.5px; fill: #64748b; }
+      .label { font-size: 13px; font-weight: 600; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1320" height="1010" fill="#ffffff"/>
+  <rect width="1320" height="1010" fill="url(#paper)"/>
+
+  <text x="40" y="52" class="title">Agent Loop：单轮状态推进与退出条件</text>
+  <text x="40" y="80" class="subtitle">模型只决定“下一步做什么”；采样、执行、回填、排队、预算和停止都由 Harness 的循环完成</text>
+
+  <!-- Connectors first -->
+  <path d="M600 200 V240" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M600 310 V350" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M600 420 V460" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M600 530 V565" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M690 610 H880" class="line" stroke="#16a34a" stroke-width="2.6" marker-end="url(#arrow-green)"/>
+  <path d="M1040 645 V690" class="line" stroke="#16a34a" stroke-width="2.6" marker-end="url(#arrow-green)"/>
+  <path d="M1040 760 V805" class="line" stroke="#16a34a" stroke-width="2.6" marker-end="url(#arrow-green)"/>
+  <path d="M1200 840 H1270 V275 H780" class="line" stroke="#16a34a" stroke-width="2.6" marker-end="url(#arrow-green)"/>
+  <path d="M600 655 V715" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M510 760 H385 V275 H420" class="line" stroke="#7c3aed" stroke-width="2.4" stroke-dasharray="8 6" marker-end="url(#arrow-purple)"/>
+  <path d="M600 805 V890" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+
+  <!-- Main column -->
+  <g>
+    <rect x="420" y="130" width="360" height="70" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2.2"/>
+    <text x="600" y="160" class="node-title" text-anchor="middle">① 用户输入 / 恢复的会话历史</text>
+    <text x="600" y="184" class="node-sub" text-anchor="middle">新任务从 prompt 开始，恢复任务从日志重建</text>
+  </g>
+  <g>
+    <rect x="420" y="240" width="360" height="70" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2.2"/>
+    <text x="600" y="270" class="node-title" text-anchor="middle">② 排空 steering 队列</text>
+    <text x="600" y="294" class="node-sub" text-anchor="middle">运行中追加的消息在下一次请求前写入历史</text>
+  </g>
+  <g>
+    <rect x="420" y="350" width="360" height="70" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2.2"/>
+    <text x="600" y="380" class="node-title" text-anchor="middle">③ 装配请求</text>
+    <text x="600" y="404" class="node-sub" text-anchor="middle">system + 历史视图 + 工具 schema</text>
+  </g>
+  <g>
+    <rect x="420" y="460" width="360" height="70" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2.2"/>
+    <text x="600" y="490" class="node-title" text-anchor="middle">④ 流式采样</text>
+    <text x="600" y="514" class="node-sub" text-anchor="middle">text / reasoning / tool call 增量事件</text>
+  </g>
+  <g>
+    <polygon points="600,565 690,610 600,655 510,610" fill="#fff7ed" stroke="#f97316" stroke-width="2.2"/>
+    <text x="600" y="615" class="node-title" text-anchor="middle">含 tool call？</text>
+  </g>
+  <g>
+    <polygon points="600,715 690,760 600,805 510,760" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2.2"/>
+    <text x="600" y="757" class="node-title" text-anchor="middle">还有排队</text>
+    <text x="600" y="777" class="node-title" text-anchor="middle">消息？</text>
+  </g>
+  <g>
+    <rect x="455" y="890" width="290" height="62" rx="31" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.4"/>
+    <text x="600" y="918" class="node-title" text-anchor="middle">⑨ 结束本次运行</text>
+    <text x="600" y="940" class="node-sub" text-anchor="middle">返回最终回复，状态落盘</text>
+  </g>
+
+  <!-- Tool branch -->
+  <g>
+    <rect x="880" y="575" width="320" height="70" rx="16" fill="#ffffff" stroke="#16a34a" stroke-width="2.2"/>
+    <text x="1040" y="605" class="node-title" text-anchor="middle">⑥ 执行工具</text>
+    <text x="1040" y="629" class="node-sub" text-anchor="middle">查找 → 校验参数 → 审批 → 执行</text>
+  </g>
+  <g>
+    <rect x="880" y="690" width="320" height="70" rx="16" fill="#ffffff" stroke="#16a34a" stroke-width="2.2"/>
+    <text x="1040" y="720" class="node-title" text-anchor="middle">⑦ 回填 tool result</text>
+    <text x="1040" y="744" class="node-sub" text-anchor="middle">按 call id 配对；失败也作为结果回填</text>
+  </g>
+  <g>
+    <rect x="880" y="805" width="320" height="70" rx="16" fill="#ffffff" stroke="#fbbf24" stroke-width="2.2"/>
+    <text x="1040" y="835" class="node-title" text-anchor="middle">⑧ 预算与上下文检查</text>
+    <text x="1040" y="859" class="node-sub" text-anchor="middle">轮数、token、压缩阈值、stop hook</text>
+  </g>
+
+  <!-- Cancellation note -->
+  <g>
+    <rect x="820" y="440" width="380" height="96" rx="16" fill="#fff1f2" stroke="#fb7185" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="1010" y="472" class="node-title" text-anchor="middle">取消信号贯穿 ④ 与 ⑥</text>
+    <text x="1010" y="498" class="node-sub" text-anchor="middle">AbortSignal / CancellationToken</text>
+    <text x="1010" y="520" class="tiny" text-anchor="middle">中断后写入“已中断”标记，工具可能部分执行</text>
+  </g>
+
+  <!-- Exit conditions -->
+  <g>
+    <rect x="40" y="420" width="310" height="300" rx="20" fill="#f8fbff" stroke="#60a5fa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+    <text x="195" y="456" class="node-title" text-anchor="middle">退出条件</text>
+    <text x="62" y="492" class="node-sub">• 模型不再调用工具（end_turn）</text>
+    <text x="62" y="524" class="node-sub">• 达到最大轮数 / token / 成本预算</text>
+    <text x="62" y="556" class="node-sub">• 用户中断或超时</text>
+    <text x="62" y="588" class="node-sub">• 不可重试错误、上下文超限</text>
+    <text x="62" y="620" class="node-sub">• stop hook 或最终输出工具</text>
+    <text x="62" y="652" class="node-sub">• 连续无效调用超过阈值</text>
+    <text x="195" y="696" class="tiny" text-anchor="middle">任何出口都要先把状态写完整</text>
+  </g>
+
+  <!-- Persistence note -->
+  <g>
+    <rect x="880" y="905" width="380" height="72" rx="16" fill="#faf5ff" stroke="#a78bfa" stroke-width="2"/>
+    <text x="1070" y="935" class="node-title" text-anchor="middle">会话日志：每条消息追加落盘</text>
+    <text x="1070" y="959" class="node-sub" text-anchor="middle">进程重启后按日志重建 ① 的历史</text>
+  </g>
+
+  <!-- Labels -->
+  <text x="785" y="598" class="label" fill="#15803d" text-anchor="middle">是</text>
+  <text x="614" y="690" class="label">否</text>
+  <text x="614" y="855" class="label">否</text>
+  <text x="1030" y="265" class="label" fill="#15803d" text-anchor="middle">⑤ 下一轮</text>
+  <text x="300" y="790" class="label" fill="#6d28d9" text-anchor="middle">是：follow-up 续跑</text>
+</svg>

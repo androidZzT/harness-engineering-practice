@@ -46,6 +46,7 @@
 ## 相关主题
 
 - [**谈谈 AI-Ready 和 AI-SDLC**](./zh/ai-ready.md) —— 卷 Agents 协同平台之前，先把工程做成 AI-Ready（独立短文，非系列章节）
+- [**LLM 与 Agent 核心概念**](./core-concepts/README.md) —— 配套系列，14 篇讲清 LLM API、KV Cache、Agent Loop、Tool Use、Reasoning、Planning、Skills、MCP、Memory、Subagent、Multi-Agent 与 Prompt / Context / Harness Engineering 的原理和机制
 
 ## 记住一句话
 

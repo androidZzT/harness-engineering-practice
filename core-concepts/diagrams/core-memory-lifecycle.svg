@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 850">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow-blue" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="11" refX="13" refY="5.5" orient="auto">
+      <path d="M0,0 L14,5.5 L0,11 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-pink" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="11" refX="13" refY="5.5" orient="auto">
+      <path d="M0,0 L14,5.5 L0,11 Z" fill="#db2777"/>
+    </marker>
+    <marker id="arrow-gray" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="11" refX="13" refY="5.5" orient="auto">
+      <path d="M0,0 L14,5.5 L0,11 Z" fill="#64748b"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .node-title { font-size: 17px; font-weight: 650; }
+      .node-sub { font-size: 13.5px; fill: #536174; }
+      .tiny { font-size: 12.5px; fill: #475569; }
+      .col-title { font-size: 15px; font-weight: 700; fill: #64748b; }
+      .label { font-size: 13px; font-weight: 600; paint-order: stroke; stroke: #ffffff; stroke-width: 5px; stroke-linejoin: round; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="850" fill="#ffffff"/>
+  <rect width="1440" height="850" fill="url(#paper)"/>
+
+  <text x="40" y="55" class="title">记忆生命周期：写入有门槛，更新与遗忘同样是功能</text>
+  <text x="40" y="83" class="subtitle">主路径自上而下；右侧回路把检索命中与最近使用时间写回元数据，影响后续整合与淘汰</text>
+
+  <text x="580" y="128" class="col-title" text-anchor="middle">生命周期阶段</text>
+  <text x="1180" y="128" class="col-title" text-anchor="middle">实现示例</text>
+
+  <!-- Main flow connectors -->
+  <path d="M580 220 V248" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M580 330 V358" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M580 440 V468" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M580 550 V578" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M580 660 V688" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <!-- reject branch -->
+  <path d="M320 290 H262" class="line" stroke="#64748b" stroke-width="2.6" marker-end="url(#arrow-gray)"/>
+  <!-- usage feedback loop -->
+  <path d="M840 510 H900 V400 H842" class="line" stroke="#db2777" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#arrow-pink)"/>
+
+  <!-- Stage nodes -->
+  <rect x="320" y="140" width="520" height="80" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="580" y="171" class="node-title" text-anchor="middle">1 触发写入</text>
+  <text x="580" y="198" class="node-sub" text-anchor="middle">用户纠正 · 显式“记住” · 会话结束 · 压缩前 flush · 后台扫描</text>
+
+  <rect x="320" y="250" width="520" height="80" rx="16" fill="#ffffff" stroke="#16a34a" stroke-width="2.2"/>
+  <text x="580" y="281" class="node-title" text-anchor="middle">2 写入闸门</text>
+  <text x="580" y="308" class="node-sub" text-anchor="middle">会改变未来行为？能重新获取？含密钥或注入模式？</text>
+
+  <rect x="320" y="360" width="520" height="80" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="580" y="391" class="node-title" text-anchor="middle">3 组织</text>
+  <text x="580" y="418" class="node-sub" text-anchor="middle">作用域 · 类型 · 来源 · 时间 · 置信度；小索引 + 主题文件</text>
+
+  <rect x="320" y="470" width="520" height="80" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="580" y="501" class="node-title" text-anchor="middle">4 检索与注入</text>
+  <text x="580" y="528" class="node-sub" text-anchor="middle">常驻索引 / 每轮预取 / 按需搜索，带围栏与来源进入上下文</text>
+
+  <rect x="320" y="580" width="520" height="80" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+  <text x="580" y="611" class="node-title" text-anchor="middle">5 更新与冲突</text>
+  <text x="580" y="638" class="node-sub" text-anchor="middle">覆盖被推翻的事实 · 当前环境优先 · 易漂移的先验证</text>
+
+  <rect x="320" y="690" width="520" height="80" rx="16" fill="#fff1f2" stroke="#fb7185" stroke-width="2"/>
+  <text x="580" y="721" class="node-title" text-anchor="middle">6 遗忘</text>
+  <text x="580" y="748" class="node-sub" text-anchor="middle">容量上限逼迫合并 · 分数淘汰 · 时间衰减 · 显式删除</text>
+
+  <!-- Reject box -->
+  <rect x="40" y="250" width="220" height="80" rx="16" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 5"/>
+  <text x="150" y="281" class="node-title" text-anchor="middle">不写入</text>
+  <text x="150" y="307" class="tiny" text-anchor="middle">只留在会话日志</text>
+  <text x="291" y="279" class="label" fill="#64748b" text-anchor="middle">不通过</text>
+
+  <!-- Loop label -->
+  <text x="922" y="458" class="label" fill="#db2777" text-anchor="middle" transform="rotate(-90 922 458)">使用反馈</text>
+
+  <!-- Example column -->
+  <rect x="950" y="140" width="460" height="80" rx="14" fill="#f8fbff" stroke="#bfdbfe" stroke-width="1.6"/>
+  <text x="972" y="172" class="tiny">Hermes：模型调用 memory 工具同步写入</text>
+  <text x="972" y="198" class="tiny">OpenClaw：压缩前静默 memory flush</text>
+
+  <rect x="950" y="250" width="460" height="80" rx="14" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.6"/>
+  <text x="972" y="282" class="tiny">Codex：“未来的 Agent 会因此做得更好吗”无操作门槛</text>
+  <text x="972" y="308" class="tiny">Hermes：注入扫描 + 字符上限；DeerFlow：置信度 ≥ 0.7</text>
+
+  <rect x="950" y="360" width="460" height="80" rx="14" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.6"/>
+  <text x="972" y="392" class="tiny">Claude Code：MEMORY.md 索引 + topic 文件</text>
+  <text x="972" y="418" class="tiny">DeerFlow：category / confidence / source / createdAt</text>
+
+  <rect x="950" y="470" width="460" height="80" rx="14" fill="#f8fbff" stroke="#bfdbfe" stroke-width="1.6"/>
+  <text x="972" y="502" class="tiny">Codex：摘要 ≤ 2500 Token，快速检索 4–6 步</text>
+  <text x="972" y="528" class="tiny">OpenClaw：向量 0.7 + BM25 0.3，可选衰减与 MMR</text>
+
+  <rect x="950" y="580" width="460" height="80" rx="14" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.6"/>
+  <text x="972" y="612" class="tiny">DeerFlow：newFacts / factsToRemove 由代码应用</text>
+  <text x="972" y="638" class="tiny">Codex：按漂移风险与验证成本决定是否先验证</text>
+
+  <rect x="950" y="690" width="460" height="80" rx="14" fill="#fff1f2" stroke="#fecdd3" stroke-width="1.6"/>
+  <text x="972" y="722" class="tiny">DeerFlow：超过 100 条按置信度淘汰</text>
+  <text x="972" y="748" class="tiny">OpenClaw：日期笔记半衰期 30 天；Codex：max_unused_days</text>
+
+  <text x="580" y="820" class="tiny" text-anchor="middle">物理删除须覆盖原始日志、派生摘要与向量索引中的副本</text>
+</svg>

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/></marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/></marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .msg { font-size: 13px; fill: #1e293b; }
+      .tiny { font-size: 12px; fill: #64748b; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="#ffffff"/>
+  <rect width="1440" height="900" fill="url(#paper)"/>
+  <text x="55" y="55" class="title">MCP 生命周期：握手式会话与逐请求元数据</text>
+  <text x="55" y="83" class="subtitle">左：2025-11-25 及以前（legacy）；右：2026-07-28（无状态，版本与能力随每个请求携带）</text>
+
+  <rect x="45" y="110" width="660" height="700" rx="24" fill="#fbfdff" stroke="#a78bfa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="70" y="143" class="region-title">握手式会话</text>
+  <path d="M150 210 V790" class="line" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 6"/>
+  <path d="M600 210 V790" class="line" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 6"/>
+  <rect x="110" y="405" width="530" height="55" rx="12" fill="#f5f3ff" stroke="#a78bfa" stroke-width="1.8"/>
+  <text x="375" y="427" class="node-sub" text-anchor="middle">会话建立：此后只能使用协商过的能力</text>
+  <text x="375" y="447" class="node-sub" text-anchor="middle">HTTP 传输分配 Mcp-Session-Id</text>
+  <rect x="110" y="710" width="530" height="60" rx="12" fill="#fff1f2" stroke="#fb7185" stroke-width="1.8"/>
+  <text x="375" y="732" class="node-sub" text-anchor="middle">会话过期（HTTP 404）→ 重新 initialize 再重放</text>
+  <text x="375" y="752" class="node-sub" text-anchor="middle">Codex 快照：协商 2025-06-18</text>
+  <path d="M152 260 H596" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <text x="375" y="251" class="msg" text-anchor="middle">initialize：protocolVersion · capabilities · clientInfo</text>
+  <path d="M598 320 H154" class="line" stroke="#16a34a" stroke-width="2.4" stroke-dasharray="8 5" marker-end="url(#arrow-green)"/>
+  <text x="375" y="311" class="msg" text-anchor="middle">result：协商版本 · Server 能力 · serverInfo</text>
+  <path d="M152 380 H596" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <text x="375" y="371" class="msg" text-anchor="middle">notifications/initialized</text>
+  <path d="M152 500 H596" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <text x="375" y="491" class="msg" text-anchor="middle">tools/list（沿用会话中协商的能力）</text>
+  <path d="M598 560 H154" class="line" stroke="#16a34a" stroke-width="2.4" stroke-dasharray="8 5" marker-end="url(#arrow-green)"/>
+  <text x="375" y="551" class="msg" text-anchor="middle">tools</text>
+  <path d="M152 620 H596" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <text x="375" y="611" class="msg" text-anchor="middle">tools/call</text>
+  <path d="M598 680 H154" class="line" stroke="#16a34a" stroke-width="2.4" stroke-dasharray="8 5" marker-end="url(#arrow-green)"/>
+  <text x="375" y="671" class="msg" text-anchor="middle">result</text>
+  <rect x="70" y="160" width="160" height="50" rx="12" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="150" y="182" class="node-title" text-anchor="middle">Client</text>
+  <text x="150" y="201" class="tiny" text-anchor="middle">Host 内的连接器</text>
+  <rect x="520" y="160" width="160" height="50" rx="12" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="600" y="182" class="node-title" text-anchor="middle">Server</text>
+  <text x="600" y="201" class="tiny" text-anchor="middle">工具与数据提供方</text>
+  <rect x="735" y="110" width="660" height="700" rx="24" fill="#fbfdff" stroke="#60a5fa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="760" y="143" class="region-title">逐请求元数据</text>
+  <path d="M840 210 V790" class="line" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 6"/>
+  <path d="M1290 210 V790" class="line" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 6"/>
+  <rect x="800" y="720" width="530" height="60" rx="12" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
+  <text x="1065" y="742" class="node-sub" text-anchor="middle">版本不支持 → -32022 UnsupportedProtocolVersion，换版本重试</text>
+  <text x="1065" y="762" class="node-sub" text-anchor="middle">无协议层会话：任一实例都能处理请求</text>
+  <path d="M842 260 H1286" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <text x="1065" y="251" class="msg" text-anchor="middle">server/discover（可选探测）</text>
+  <path d="M1288 320 H844" class="line" stroke="#16a34a" stroke-width="2.4" stroke-dasharray="8 5" marker-end="url(#arrow-green)"/>
+  <text x="1065" y="311" class="msg" text-anchor="middle">supportedVersions · capabilities · serverInfo</text>
+  <path d="M842 390 H1286" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <text x="1065" y="381" class="msg" text-anchor="middle">tools/list + _meta{protocolVersion, clientCapabilities}</text>
+  <path d="M1288 450 H844" class="line" stroke="#16a34a" stroke-width="2.4" stroke-dasharray="8 5" marker-end="url(#arrow-green)"/>
+  <text x="1065" y="441" class="msg" text-anchor="middle">resultType: complete · ttlMs · cacheScope</text>
+  <path d="M842 520 H1286" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <text x="1065" y="511" class="msg" text-anchor="middle">tools/call + _meta</text>
+  <path d="M1288 580 H844" class="line" stroke="#16a34a" stroke-width="2.4" stroke-dasharray="8 5" marker-end="url(#arrow-green)"/>
+  <text x="1065" y="571" class="msg" text-anchor="middle">resultType: input_required（inputRequests）</text>
+  <path d="M842 650 H1286" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <text x="1065" y="641" class="msg" text-anchor="middle">重试 tools/call + inputResponses（新 id）</text>
+  <path d="M1288 700 H844" class="line" stroke="#16a34a" stroke-width="2.4" stroke-dasharray="8 5" marker-end="url(#arrow-green)"/>
+  <text x="1065" y="691" class="msg" text-anchor="middle">resultType: complete</text>
+  <rect x="760" y="160" width="160" height="50" rx="12" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="840" y="182" class="node-title" text-anchor="middle">Client</text>
+  <text x="840" y="201" class="tiny" text-anchor="middle">Host 内的连接器</text>
+  <rect x="1210" y="160" width="160" height="50" rx="12" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="1290" y="182" class="node-title" text-anchor="middle">Server</text>
+  <text x="1290" y="201" class="tiny" text-anchor="middle">工具与数据提供方</text>
+  <rect x="45" y="830" width="1350" height="50" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="70" y="861" class="node-sub">实线蓝箭头：Client 发出的请求或通知；虚线绿箭头：Server 返回的结果。跨调用状态改用工具返回的显式句柄，长期通知走 subscriptions/listen。</text>
+</svg>

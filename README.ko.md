@@ -46,6 +46,7 @@
 ## 관련 주제
 
 - [**AI-Ready와 AI-SDLC에 대하여**](./ko/ai-ready.md) —— Agents 플랫폼을 파고들기 전에, 먼저 엔지니어링을 AI-Ready로 (독립 단편, 시리즈 장 아님)
+- [**LLM & Agent 핵심 개념**](./core-concepts/README.md) —— LLM API부터 Harness Engineering까지 14편의 원리 해설 시리즈 (중국어만 제공)
 
 ## 핵심 아이디어
 

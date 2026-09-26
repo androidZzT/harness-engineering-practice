@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#ea580c"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .node-title { font-size: 17px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .label { font-size: 14px; font-weight: 650; }
+      .tiny { font-size: 13px; fill: #64748b; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="#ffffff"/>
+  <rect width="1440" height="900" fill="url(#paper)"/>
+
+  <text x="55" y="55" class="title">评测驱动的 prompt 迭代回路</text>
+  <text x="55" y="83" class="subtitle">每次修改都要过能力集与回归集；线上发现的新失败写回评测集</text>
+
+  <!-- Connectors -->
+  <path d="M720 197 V228" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M720 302 V333" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M720 407 V438" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M720 512 V543" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M720 655 V713" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <!-- Offline loop (orange) -->
+  <path d="M570 600 H414" class="line" stroke="#ea580c" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <path d="M260 564 V266 H508" class="line" stroke="#ea580c" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <!-- Online loop (green) -->
+  <path d="M930 750 H1180 V640" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <path d="M1180 564 V371 H932" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+
+  <!-- Main nodes -->
+  <g>
+    <rect x="510" y="125" width="420" height="72" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="720" y="155" class="node-title" text-anchor="middle">定义任务与成功标准</text>
+    <text x="720" y="180" class="node-sub" text-anchor="middle">可度量的 outcome、行为约束、成本与延迟上限</text>
+  </g>
+  <g>
+    <rect x="510" y="230" width="420" height="72" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+    <text x="720" y="260" class="node-title" text-anchor="middle">修改 prompt 并提交版本</text>
+    <text x="720" y="285" class="node-sub" text-anchor="middle">prompt + 模型快照 + 工具定义一起版本化</text>
+  </g>
+  <g>
+    <rect x="510" y="335" width="420" height="72" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="720" y="365" class="node-title" text-anchor="middle">运行评测集</text>
+    <text x="720" y="390" class="node-sub" text-anchor="middle">能力集 + 回归集，每个 task 多次 trial</text>
+  </g>
+  <g>
+    <rect x="510" y="440" width="420" height="72" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+    <text x="720" y="470" class="node-title" text-anchor="middle">评分</text>
+    <text x="720" y="495" class="node-sub" text-anchor="middle">代码评分器 → 模型评分器 → 人工抽检校准</text>
+  </g>
+  <g>
+    <polygon points="720,545 870,600 720,655 570,600" fill="#ffffff" stroke="#fbbf24" stroke-width="2.2"/>
+    <text x="720" y="595" class="node-title" text-anchor="middle">回归不降</text>
+    <text x="720" y="618" class="node-title" text-anchor="middle">且能力提升？</text>
+  </g>
+  <g>
+    <rect x="510" y="715" width="420" height="72" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="720" y="745" class="node-title" text-anchor="middle">灰度发布</text>
+    <text x="720" y="770" class="node-sub" text-anchor="middle">固定模型快照，线上 trace 抽样复核</text>
+  </g>
+
+  <!-- Side nodes -->
+  <g>
+    <rect x="110" y="564" width="300" height="72" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+    <text x="260" y="594" class="node-title" text-anchor="middle">读 transcript 归因</text>
+    <text x="260" y="619" class="node-sub" text-anchor="middle">指令 / 示例 / 工具描述 / 模型能力</text>
+  </g>
+  <g>
+    <rect x="1030" y="564" width="300" height="72" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+    <text x="1180" y="594" class="node-title" text-anchor="middle">新失败写成 task</text>
+    <text x="1180" y="619" class="node-sub" text-anchor="middle">补进回归集，同类问题不再出现</text>
+  </g>
+
+  <!-- Labels -->
+  <text x="480" y="588" class="label" fill="#ea580c" text-anchor="middle">否</text>
+  <text x="740" y="690" class="label" fill="#2563eb">是</text>
+  <text x="275" y="420" class="tiny">一次只改一处</text>
+  <text x="275" y="442" class="tiny">能力不足则换模型或拆任务</text>
+  <text x="1195" y="440" class="tiny">下次修改</text>
+  <text x="1195" y="462" class="tiny">必须通过</text>
+  <text x="960" y="738" class="tiny">线上失败</text>
+
+  <!-- Legend -->
+  <text x="110" y="860" class="tiny">蓝色：主路径</text><text x="260" y="860" class="tiny">橙色：离线迭代回路</text><text x="450" y="860" class="tiny">绿色：线上反馈回路</text>
+</svg>

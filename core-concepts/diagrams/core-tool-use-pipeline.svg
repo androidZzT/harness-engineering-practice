@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 1040">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow-dark" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#1f2937"/>
+    </marker>
+    <marker id="arrow-pink" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#db2777"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 28px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .note { font-size: 13px; fill: #334155; }
+      .label { font-size: 13px; font-weight: 600; fill: #be185d; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1300" height="1040" fill="#ffffff"/>
+  <rect width="1300" height="1040" fill="url(#paper)"/>
+
+  <text x="40" y="52" class="title">工具调用的执行管线</text>
+  <text x="40" y="80" class="subtitle">模型给出的是请求而不是命令：每一道关卡都可以拒绝，拒绝也以错误结果回填，保证调用与结果成对</text>
+
+  <!-- Main path connectors -->
+  <path d="M570 184 V224" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M570 298 V338" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M570 412 V452" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M570 526 V566" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M570 640 V680" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M570 754 V794" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+  <path d="M570 868 V908" class="line" stroke="#1f2937" stroke-width="2.6" marker-end="url(#arrow-dark)"/>
+
+  <!-- Rejection channel -->
+  <path d="M760 261 H860" class="line" stroke="#db2777" stroke-width="2.2" stroke-dasharray="7 5"/>
+  <path d="M760 375 H860" class="line" stroke="#db2777" stroke-width="2.2" stroke-dasharray="7 5"/>
+  <path d="M760 489 H860" class="line" stroke="#db2777" stroke-width="2.2" stroke-dasharray="7 5"/>
+  <path d="M760 603 H860" class="line" stroke="#db2777" stroke-width="2.2" stroke-dasharray="7 5"/>
+  <path d="M860 261 V700 H915" class="line" stroke="#db2777" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrow-pink)"/>
+  <path d="M1080 760 V945 H765" class="line" stroke="#db2777" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrow-pink)"/>
+
+  <!-- Main nodes -->
+  <g>
+    <rect x="380" y="110" width="380" height="74" rx="37" fill="#fff7ed" stroke="#f97316" stroke-width="2.2"/>
+    <text x="570" y="142" class="node-title" text-anchor="middle">模型输出 tool call</text>
+    <text x="570" y="166" class="node-sub" text-anchor="middle">name + arguments + id</text>
+  </g>
+  <g>
+    <rect x="380" y="224" width="380" height="74" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2.2"/>
+    <text x="570" y="256" class="node-title" text-anchor="middle">① 名称解析</text>
+    <text x="570" y="280" class="node-sub" text-anchor="middle">工具是否存在、当前是否暴露给模型</text>
+  </g>
+  <g>
+    <rect x="380" y="338" width="380" height="74" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2.2"/>
+    <text x="570" y="370" class="node-title" text-anchor="middle">② 参数校验</text>
+    <text x="570" y="394" class="node-sub" text-anchor="middle">JSON Schema；strict 保证形状，不保证语义</text>
+  </g>
+  <g>
+    <rect x="380" y="452" width="380" height="74" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2.2"/>
+    <text x="570" y="484" class="node-title" text-anchor="middle">③ 权限策略</text>
+    <text x="570" y="508" class="node-sub" text-anchor="middle">allow / ask / deny：规则、钩子、分类器</text>
+  </g>
+  <g>
+    <rect x="380" y="566" width="380" height="74" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2.2"/>
+    <text x="570" y="598" class="node-title" text-anchor="middle">④ 审批</text>
+    <text x="570" y="622" class="node-sub" text-anchor="middle">人工确认或自动 reviewer，决定可缓存</text>
+  </g>
+  <g>
+    <rect x="380" y="680" width="380" height="74" rx="16" fill="#ffffff" stroke="#16a34a" stroke-width="2.2"/>
+    <text x="570" y="712" class="node-title" text-anchor="middle">⑤ 沙箱内执行</text>
+    <text x="570" y="736" class="node-sub" text-anchor="middle">超时、取消、并发控制、幂等键</text>
+  </g>
+  <g>
+    <rect x="380" y="794" width="380" height="74" rx="16" fill="#ffffff" stroke="#fbbf24" stroke-width="2.2"/>
+    <text x="570" y="826" class="node-title" text-anchor="middle">⑥ 结果整形</text>
+    <text x="570" y="850" class="node-sub" text-anchor="middle">截断、分页、脱敏、可执行的错误信息</text>
+  </g>
+  <g>
+    <rect x="380" y="908" width="380" height="74" rx="37" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.4"/>
+    <text x="570" y="940" class="node-title" text-anchor="middle">回填 tool result</text>
+    <text x="570" y="964" class="node-sub" text-anchor="middle">按 id 配对，进入下一轮上下文</text>
+  </g>
+
+  <!-- Error box -->
+  <g>
+    <rect x="915" y="640" width="330" height="120" rx="16" fill="#fff1f2" stroke="#fb7185" stroke-width="2.2"/>
+    <text x="1080" y="672" class="node-title" text-anchor="middle">错误结果（is_error）</text>
+    <text x="1080" y="698" class="node-sub" text-anchor="middle">写明哪里错、为什么、下一步怎么做</text>
+    <text x="1080" y="720" class="node-sub" text-anchor="middle">未执行的调用也要有结果</text>
+    <text x="1080" y="742" class="node-sub" text-anchor="middle">模型据此修正或换方案</text>
+  </g>
+  <text x="880" y="240" class="label">拒绝</text>
+
+  <!-- Left implementation notes -->
+  <g>
+    <rect x="40" y="224" width="300" height="74" rx="14" fill="#f8fbff" stroke="#93c5fd" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <text x="58" y="254" class="note">Hermes：先模糊修复工具名，</text>
+    <text x="58" y="276" class="note">修不了再回填可用工具列表</text>
+  </g>
+  <g>
+    <rect x="40" y="338" width="300" height="74" rx="14" fill="#f8fbff" stroke="#93c5fd" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <text x="58" y="368" class="note">Pi：TypeBox 校验，错误列出</text>
+    <text x="58" y="390" class="note">字段路径、原因和原始参数</text>
+  </g>
+  <g>
+    <rect x="40" y="452" width="300" height="188" rx="14" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <text x="58" y="484" class="note">Codex ToolOrchestrator：</text>
+    <text x="58" y="510" class="note">1. 按策略判定 Skip / NeedsApproval</text>
+    <text x="58" y="532" class="note">   / Forbidden</text>
+    <text x="58" y="558" class="note">2. 选择沙箱并首次执行</text>
+    <text x="58" y="584" class="note">3. 被沙箱拒绝时升级沙箱重试，</text>
+    <text x="58" y="606" class="note">   已批准的决定不再重复询问</text>
+  </g>
+  <g>
+    <rect x="40" y="680" width="300" height="74" rx="14" fill="#f0fdf4" stroke="#86efac" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <text x="58" y="710" class="note">并行：Codex 读写锁；Hermes</text>
+    <text x="58" y="732" class="note">只读工具与不重叠路径才并行</text>
+  </g>
+  <g>
+    <rect x="40" y="794" width="300" height="74" rx="14" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <text x="58" y="824" class="note">返回高信号字段；大结果分页、</text>
+    <text x="58" y="846" class="note">过滤或截断，并提示如何缩小范围</text>
+  </g>
+</svg>

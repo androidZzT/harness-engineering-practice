@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="ab" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/></marker>
+    <marker id="ag" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/></marker>
+    <marker id="ao" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#ea580c"/></marker>
+    <marker id="ap" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#db2777"/></marker>
+    <marker id="avs" markerWidth="10" markerHeight="8" refX="1" refY="4" orient="auto"><path d="M10,0 L0,4 L10,8 Z" fill="#7c3aed"/></marker>
+    <marker id="av" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#7c3aed"/></marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 15px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .tiny { font-size: 12px; fill: #64748b; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="#ffffff"/>
+  <rect width="1440" height="900" fill="url(#paper)"/>
+
+  <text x="55" y="55" class="title">黑板式协调：Multica Squad 的一次派发与回收</text>
+  <text x="55" y="83" class="subtitle">Agent 之间不直接调用；评论与分配写入 Issue 看板，Server 按规则生成 Task，Daemon 认领后启动对应 Agent</text>
+  <path d="M150 182 V735" class="line" stroke="#475569" stroke-width="1.6" stroke-dasharray="6 6" opacity="0.7"/>
+  <path d="M440 182 V735" class="line" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="6 6" opacity="0.7"/>
+  <path d="M730 182 V735" class="line" stroke="#2563eb" stroke-width="1.6" stroke-dasharray="6 6" opacity="0.7"/>
+  <path d="M1010 182 V735" class="line" stroke="#ea580c" stroke-width="1.6" stroke-dasharray="6 6" opacity="0.7"/>
+  <path d="M1285 182 V735" class="line" stroke="#16a34a" stroke-width="1.6" stroke-dasharray="6 6" opacity="0.7"/>
+  <rect x="40" y="112" width="220" height="68" rx="14" fill="#f8fafc" stroke="#475569" stroke-width="2.2"/>
+  <text x="150" y="141" class="node-title" text-anchor="middle">Issue 看板</text>
+  <text x="150" y="164" class="tiny" text-anchor="middle">Postgres：issue / comment</text>
+  <rect x="330" y="112" width="220" height="68" rx="14" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2.2"/>
+  <text x="440" y="141" class="node-title" text-anchor="middle">Server 路由</text>
+  <text x="440" y="164" class="tiny" text-anchor="middle">事件 → Task 状态机</text>
+  <rect x="620" y="112" width="220" height="68" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <text x="730" y="141" class="node-title" text-anchor="middle">Daemon</text>
+  <text x="730" y="164" class="tiny" text-anchor="middle">并发槽 + Claim</text>
+  <rect x="900" y="112" width="220" height="68" rx="14" fill="#fff7ed" stroke="#ea580c" stroke-width="2.2"/>
+  <text x="1010" y="141" class="node-title" text-anchor="middle">Squad Leader</text>
+  <text x="1010" y="164" class="tiny" text-anchor="middle">只调度，不执行</text>
+  <rect x="1175" y="112" width="220" height="68" rx="14" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.2"/>
+  <text x="1285" y="141" class="node-title" text-anchor="middle">Worker Agent</text>
+  <text x="1285" y="164" class="tiny" text-anchor="middle">执行子任务</text>
+  <path d="M156 225 H432" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#ab)"/>
+  <path d="M446 245 H500 V271 H450" class="line" stroke="#7c3aed" stroke-width="2.4" marker-end="url(#av)"/>
+  <path d="M724 320 H448" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#ab)"/>
+  <path d="M736 375 H1002" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#ab)"/>
+  <path d="M1004 430 H158" class="line" stroke="#ea580c" stroke-width="2.6" marker-end="url(#ao)"/>
+  <path d="M156 485 H432" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#ab)"/>
+  <path d="M736 540 H1277" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#ab)"/>
+  <path d="M1279 595 H158" class="line" stroke="#16a34a" stroke-width="2.6" marker-end="url(#ag)"/>
+  <path d="M156 650 H432" class="line" stroke="#16a34a" stroke-width="2.6" marker-end="url(#ag)"/>
+  <path d="M446 705 H1002" class="line" stroke="#db2777" stroke-width="2.6" stroke-dasharray="8 5" marker-end="url(#ap)"/>
+  <rect x="212.0" y="198" width="166" height="21" rx="5" fill="#ffffff" opacity="0.95"/>
+  <text x="295.0" y="214" class="node-sub" text-anchor="middle">1. 分配给 Squad</text>
+  <rect x="508" y="247" width="543" height="21" rx="5" fill="#ffffff" opacity="0.95"/>
+  <text x="512" y="263" class="node-sub">2. 生成 Leader Task（queued），附 Squad 协议与成员名单</text>
+  <rect x="346.0" y="293" width="478" height="21" rx="5" fill="#ffffff" opacity="0.95"/>
+  <text x="585.0" y="309" class="node-sub" text-anchor="middle">3. 先占并发槽，再 Claim（同 Issue + Agent 串行）</text>
+  <rect x="767.5" y="348" width="205" height="21" rx="5" fill="#ffffff" opacity="0.95"/>
+  <text x="870.0" y="364" class="node-sub" text-anchor="middle">4. 启动 Leader 会话</text>
+  <rect x="302.0" y="403" width="556" height="21" rx="5" fill="#ffffff" opacity="0.95"/>
+  <text x="580.0" y="419" class="node-sub" text-anchor="middle">5. 评论 @Worker（mention 链接），记录 activity，结束回合</text>
+  <rect x="153.5" y="458" width="283" height="21" rx="5" fill="#ffffff" opacity="0.95"/>
+  <text x="295.0" y="474" class="node-sub" text-anchor="middle">6. 评论事件 → Worker Task</text>
+  <rect x="879.0" y="513" width="257" height="21" rx="5" fill="#ffffff" opacity="0.95"/>
+  <text x="1007.5" y="529" class="node-sub" text-anchor="middle">7. Claim 并启动 Worker</text>
+  <rect x="537.0" y="568" width="361" height="21" rx="5" fill="#ffffff" opacity="0.95"/>
+  <text x="717.5" y="584" class="node-sub" text-anchor="middle">8. 回写结果评论 / 子 Issue 置为 done</text>
+  <rect x="166.5" y="623" width="257" height="21" rx="5" fill="#ffffff" opacity="0.95"/>
+  <text x="295.0" y="639" class="node-sub" text-anchor="middle">9. 回唤 Leader（含阶段屏障）</text>
+  <rect x="557.5" y="678" width="335" height="21" rx="5" fill="#ffffff" opacity="0.95"/>
+  <text x="725.0" y="694" class="node-sub" text-anchor="middle">10. Leader 被重新触发：继续派发，或结束</text>
+  <rect x="60" y="750" width="1320" height="92" rx="16" fill="#fff1f2" stroke="#fb7185" stroke-width="2"/>
+  <text x="85" y="782" class="node-title">代码强制的护栏（不依赖 prompt）</text>
+  <text x="85" y="810" class="node-sub">Claim 用 FOR UPDATE SKIP LOCKED 防重复认领 · Leader 自触发抑制 · 同 Issue 上运行中的 Agent 写入不重新入队 · 阶段屏障只在整组子 Issue 终态时触发一次</text>
+  <text x="85" y="832" class="node-sub">失败重试只覆盖 runtime_offline / timeout 等基础设施原因，默认 max_attempts = 2；Issue 状态与 Task 状态分开维护</text>
+</svg>

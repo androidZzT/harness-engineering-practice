@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 880">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-pink" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#db2777"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#ea580c"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .tiny { font-size: 12px; fill: #64748b; }
+      .label { font-size: 13px; font-weight: 600; fill: #334155; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="880" fill="#ffffff"/>
+  <rect width="1440" height="880" fill="url(#paper)"/>
+
+  <text x="55" y="55" class="title">MCP 架构：Host 汇总能力，Client 与 Server 一对一连接</text>
+  <text x="55" y="83" class="subtitle">模型只看到 Host 转换后的工具定义；发现、调用和授权都经由各自的 Client 完成</text>
+
+  <!-- Regions -->
+  <rect x="45" y="115" width="728" height="620" rx="24" fill="#fbf9ff" stroke="#a78bfa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="70" y="148" class="region-title">Host（Claude Code、Codex、IDE 等）</text>
+  <rect x="903" y="115" width="492" height="620" rx="24" fill="#f8fbff" stroke="#60a5fa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="925" y="148" class="region-title">MCP Servers</text>
+
+  <!-- Connectors -->
+  <!-- model <-> runtime -->
+  <path d="M190 290 V350" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M310 350 V290" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <!-- runtime -> clients via bus -->
+  <path d="M400 440 H470" class="line" stroke="#2563eb" stroke-width="3"/>
+  <path d="M470 230 V650" class="line" stroke="#2563eb" stroke-width="3"/>
+  <path d="M470 230 H530" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M470 440 H530" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M470 650 H530" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <!-- clients -> servers -->
+  <path d="M760 230 H915" class="line" stroke="#ea580c" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <path d="M760 440 H915" class="line" stroke="#ea580c" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <path d="M760 650 H915" class="line" stroke="#ea580c" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <!-- oauth -->
+  <path d="M1115 670 H1165" class="line" stroke="#db2777" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#arrow-pink)"/>
+
+  <!-- Arrow labels -->
+  <text x="176" y="326" class="tiny" text-anchor="end">tool call</text>
+  <text x="322" y="326" class="tiny">工具定义 + tool result</text>
+  <text x="838" y="218" class="tiny" text-anchor="middle" style="font-weight:600;fill:#334155">stdio</text>
+  <text x="838" y="428" class="tiny" text-anchor="middle" style="font-weight:600;fill:#334155">Streamable HTTP</text>
+  <text x="838" y="638" class="tiny" text-anchor="middle" style="font-weight:600;fill:#334155">HTTP + Bearer</text>
+
+  <!-- Host nodes -->
+  <g>
+    <rect x="80" y="180" width="320" height="110" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="240" y="214" class="node-title" text-anchor="middle">模型调用（LLM API）</text>
+    <text x="240" y="240" class="node-sub" text-anchor="middle">function calling：看到 name /</text>
+    <text x="240" y="260" class="node-sub" text-anchor="middle">description / 参数 schema</text>
+    <text x="240" y="280" class="tiny" text-anchor="middle">不与任何 Server 直接通信</text>
+  </g>
+  <g>
+    <rect x="80" y="350" width="320" height="180" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+    <text x="240" y="384" class="node-title" text-anchor="middle">Host 运行时</text>
+    <text x="240" y="414" class="node-sub" text-anchor="middle">汇总各 Server 的 tools/list</text>
+    <text x="240" y="438" class="node-sub" text-anchor="middle">命名：mcp__server__tool</text>
+    <text x="240" y="462" class="node-sub" text-anchor="middle">筛选 · 延迟加载 · 工具搜索</text>
+    <text x="240" y="486" class="node-sub" text-anchor="middle">审批 · 权限 · 审计</text>
+    <text x="240" y="514" class="tiny" text-anchor="middle">按名字路由到对应 Client</text>
+  </g>
+  <g>
+    <rect x="530" y="180" width="230" height="100" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+    <text x="645" y="216" class="node-title" text-anchor="middle">Client A</text>
+    <text x="645" y="242" class="node-sub" text-anchor="middle">启动子进程</text>
+    <text x="645" y="264" class="tiny" text-anchor="middle">凭据来自环境变量</text>
+  </g>
+  <g>
+    <rect x="530" y="390" width="230" height="100" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+    <text x="645" y="426" class="node-title" text-anchor="middle">Client B</text>
+    <text x="645" y="452" class="node-sub" text-anchor="middle">每个请求一个 POST</text>
+    <text x="645" y="474" class="tiny" text-anchor="middle">JSON 或 SSE 响应</text>
+  </g>
+  <g>
+    <rect x="530" y="600" width="230" height="100" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+    <text x="645" y="636" class="node-title" text-anchor="middle">Client C</text>
+    <text x="645" y="662" class="node-sub" text-anchor="middle">携带访问令牌</text>
+    <text x="645" y="684" class="tiny" text-anchor="middle">令牌按 resource 绑定</text>
+  </g>
+
+  <!-- Servers -->
+  <g>
+    <rect x="915" y="180" width="455" height="100" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="1142" y="214" class="node-title" text-anchor="middle">本地 Server：文件系统</text>
+    <text x="1142" y="240" class="node-sub" text-anchor="middle">Tools · Resources</text>
+    <text x="1142" y="264" class="tiny" text-anchor="middle">stdout 只写 MCP 消息，日志写 stderr</text>
+  </g>
+  <g>
+    <rect x="915" y="390" width="455" height="110" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="1142" y="424" class="node-title" text-anchor="middle">远端 Server：GitHub</text>
+    <text x="1142" y="450" class="node-sub" text-anchor="middle">Tools（模型控制）· Resources（应用控制）</text>
+    <text x="1142" y="474" class="node-sub" text-anchor="middle">Prompts（用户控制）</text>
+  </g>
+  <g>
+    <rect x="1165" y="630" width="205" height="80" rx="14" fill="#fff1f2" stroke="#fb7185" stroke-width="2"/>
+    <text x="1267" y="660" class="node-title" text-anchor="middle">授权服务器</text>
+    <text x="1267" y="686" class="tiny" text-anchor="middle">401 后经 RFC 9728 发现</text>
+  </g>
+  <g>
+    <rect x="915" y="630" width="200" height="80" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="1015" y="664" class="node-title" text-anchor="middle">远端 Server：数据库</text>
+    <text x="1015" y="690" class="tiny" text-anchor="middle">OAuth 资源服务器</text>
+  </g>
+
+  <!-- Bottom notes -->
+  <rect x="45" y="765" width="1350" height="90" rx="20" fill="#ffffff" stroke="#fb923c" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="70" y="798" class="node-title">隔离边界</text>
+  <text x="70" y="826" class="node-sub">每个 Client 只连一个 Server：Server 看不到其他 Server 的工具、数据和完整对话。</text>
+  <text x="70" y="846" class="node-sub">Client 原语：Elicitation 保留；Sampling、Roots 在 2026-07-28 进入弃用窗口。</text>
+</svg>

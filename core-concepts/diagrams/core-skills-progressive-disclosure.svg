@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .tiny { font-size: 12px; fill: #64748b; }
+      .mono { font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; font-size: 13px; fill: #334155; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="#ffffff"/>
+  <rect width="1440" height="900" fill="url(#paper)"/>
+
+  <text x="55" y="55" class="title">Skills 渐进披露：目录常驻，正文和资源按需进入上下文</text>
+  <text x="55" y="83" class="subtitle">磁盘上的内容不占 token；只有被登记、被读取或脚本输出的部分进入模型窗口</text>
+
+  <!-- Regions -->
+  <rect x="45" y="115" width="400" height="600" rx="24" fill="#f8fbff" stroke="#60a5fa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="70" y="148" class="region-title">磁盘：Skill 目录</text>
+  <rect x="980" y="115" width="415" height="600" rx="24" fill="#fffaf2" stroke="#fb923c" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="1005" y="148" class="region-title">模型上下文窗口</text>
+
+  <!-- Connectors (drawn before nodes) -->
+  <path d="M415 225 H545" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M875 225 H1005" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M415 405 H545" class="line" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow-purple)"/>
+  <path d="M875 405 H1005" class="line" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow-purple)"/>
+  <path d="M415 585 H545" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <path d="M875 585 H1005" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+
+  <!-- Left: disk items -->
+  <g>
+    <rect x="75" y="170" width="340" height="110" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="95" y="200" class="node-title">每个 SKILL.md 的 frontmatter</text>
+    <text x="95" y="228" class="mono">name: pdf-processing</text>
+    <text x="95" y="250" class="mono">description: Extract ... Use when ...</text>
+    <text x="95" y="270" class="tiny">另有 bigquery-analysis、commit-helper 等</text>
+  </g>
+  <g>
+    <rect x="75" y="350" width="340" height="110" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+    <text x="95" y="380" class="node-title">pdf-processing/SKILL.md 正文</text>
+    <text x="95" y="406" class="node-sub">步骤、样例、边界情况</text>
+    <text x="95" y="428" class="node-sub">指向 FORMS.md 与 scripts/</text>
+    <text x="95" y="450" class="tiny">建议少于 500 行</text>
+  </g>
+  <g>
+    <rect x="75" y="530" width="340" height="110" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+    <text x="95" y="560" class="node-title">附带资源</text>
+    <text x="95" y="586" class="mono">FORMS.md · reference.md</text>
+    <text x="95" y="608" class="mono">scripts/fill_form.py</text>
+    <text x="95" y="630" class="tiny">未被读取的文件：0 token</text>
+  </g>
+  <text x="245" y="690" class="tiny" text-anchor="middle">Skill 数量增加，磁盘内容不增加窗口负担</text>
+
+  <!-- Middle: steps -->
+  <g>
+    <rect x="545" y="180" width="330" height="90" rx="16" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+    <text x="710" y="212" class="node-title" text-anchor="middle">① 会话开始：扫描并登记</text>
+    <text x="710" y="238" class="node-sub" text-anchor="middle">Harness 解析 frontmatter</text>
+    <text x="710" y="258" class="tiny" text-anchor="middle">写入 system prompt 或工具描述</text>
+  </g>
+  <g>
+    <rect x="545" y="360" width="330" height="90" rx="16" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2.2"/>
+    <text x="710" y="392" class="node-title" text-anchor="middle">② 任务匹配 description</text>
+    <text x="710" y="418" class="node-sub" text-anchor="middle">模型用读文件工具打开 SKILL.md</text>
+    <text x="710" y="438" class="tiny" text-anchor="middle">或用户以 /name、$name 显式注入</text>
+  </g>
+  <g>
+    <rect x="545" y="540" width="330" height="90" rx="16" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.2"/>
+    <text x="710" y="572" class="node-title" text-anchor="middle">③ 正文指引：按需取用</text>
+    <text x="710" y="598" class="node-sub" text-anchor="middle">只读当前任务需要的参考文件</text>
+    <text x="710" y="618" class="tiny" text-anchor="middle">脚本经 shell 执行，代码不进窗口</text>
+  </g>
+
+  <!-- Right: context layers -->
+  <g>
+    <rect x="1005" y="170" width="365" height="110" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="1187" y="202" class="node-title" text-anchor="middle">L1 目录（常驻）</text>
+    <text x="1187" y="228" class="node-sub" text-anchor="middle">全部 Skill 的 name + description</text>
+    <text x="1187" y="252" class="node-sub" text-anchor="middle">每个约 50–100 token</text>
+    <text x="1187" y="272" class="tiny" text-anchor="middle">Codex：上限为窗口的 2%</text>
+  </g>
+  <g>
+    <rect x="1005" y="350" width="365" height="110" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+    <text x="1187" y="382" class="node-title" text-anchor="middle">L2 指令（触发后）</text>
+    <text x="1187" y="408" class="node-sub" text-anchor="middle">被选中 Skill 的 SKILL.md 全文</text>
+    <text x="1187" y="432" class="node-sub" text-anchor="middle">建议少于 5k token</text>
+    <text x="1187" y="452" class="tiny" text-anchor="middle">压缩时应受保护</text>
+  </g>
+  <g>
+    <rect x="1005" y="530" width="365" height="110" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+    <text x="1187" y="562" class="node-title" text-anchor="middle">L3 资源（按需）</text>
+    <text x="1187" y="588" class="node-sub" text-anchor="middle">读到的文件按实际大小计</text>
+    <text x="1187" y="612" class="node-sub" text-anchor="middle">脚本只计输出，如 "Validation passed"</text>
+  </g>
+  <text x="1187" y="690" class="tiny" text-anchor="middle">其余上下文：system prompt、历史、工具定义</text>
+
+  <!-- Budget comparison -->
+  <rect x="45" y="745" width="1350" height="130" rx="20" fill="#ffffff" stroke="#fb7185" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="70" y="778" class="node-title">50 个 Skill、每个正文约 4k token 时的窗口占用（272k 窗口）</text>
+  <text x="70" y="818" class="node-sub">全部常驻</text>
+  <rect x="200" y="802" width="1100" height="22" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="200" y="802" width="809" height="22" rx="6" fill="#fed7aa" stroke="#f97316" stroke-width="1.5"/>
+  <text x="1020" y="819" class="tiny">≈ 200k（约 74%）</text>
+  <text x="70" y="856" class="node-sub">渐进披露</text>
+  <rect x="200" y="840" width="1100" height="22" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="200" y="840" width="53" height="22" rx="6" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="265" y="857" class="tiny">≈ 13k：L1 5k + 触发 2 个 Skill 各 4k（约 5%）</text>
+</svg>

@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 950">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#7c3aed"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 14px; fill: #536174; }
+      .tiny { font-size: 12.5px; fill: #64748b; }
+      .cell { font-size: 13px; fill: #172033; }
+      .code { font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; font-size: 13.5px; fill: #172033; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="950" fill="#ffffff"/>
+  <rect width="1440" height="950" fill="url(#paper)"/>
+
+  <text x="55" y="55" class="title">前缀缓存：只追加才能命中，改动开头会让其后全部失效</text>
+  <text x="55" y="83" class="subtitle">每个块的身份包含它之前的整段前缀；工具定义位于最前，重排一次等于整段上下文重新 Prefill</text>
+
+  <!-- Regions -->
+  <rect x="45" y="112" width="1350" height="376" rx="24" fill="#f8fbff" stroke="#60a5fa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <rect x="45" y="516" width="650" height="404" rx="24" fill="#fbf9ff" stroke="#a78bfa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <rect x="745" y="516" width="650" height="404" rx="24" fill="#f7fdf9" stroke="#34d399" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+
+  <text x="70" y="148" class="region-title" fill="#2563eb">① 同一 Agent 会话的请求序列（每格一个 KV 块）</text>
+
+<text x="75" y="200" class="node-title" text-anchor="start">第 1 轮请求</text>
+<rect x="270" y="170" width="112" height="44" rx="9" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+<text x="326" y="198" class="cell" text-anchor="middle">tools[A,B]</text>
+<rect x="392" y="170" width="112" height="44" rx="9" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+<text x="448" y="198" class="cell" text-anchor="middle">system</text>
+<rect x="514" y="170" width="112" height="44" rx="9" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+<text x="570" y="198" class="cell" text-anchor="middle">user₁</text>
+<rect x="636" y="170" width="112" height="44" rx="9" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+<text x="692" y="198" class="cell" text-anchor="middle">工具往返₁</text>
+<text x="1030" y="198" class="node-sub" text-anchor="start">首轮：整段写入</text>
+<text x="75" y="272" class="node-title" text-anchor="start">第 2 轮：只追加</text>
+<rect x="270" y="242" width="112" height="44" rx="9" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+<text x="326" y="270" class="cell" text-anchor="middle">tools[A,B]</text>
+<rect x="392" y="242" width="112" height="44" rx="9" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+<text x="448" y="270" class="cell" text-anchor="middle">system</text>
+<rect x="514" y="242" width="112" height="44" rx="9" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+<text x="570" y="270" class="cell" text-anchor="middle">user₁</text>
+<rect x="636" y="242" width="112" height="44" rx="9" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+<text x="692" y="270" class="cell" text-anchor="middle">工具往返₁</text>
+<rect x="758" y="242" width="112" height="44" rx="9" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+<text x="814" y="270" class="cell" text-anchor="middle">工具往返₂</text>
+<rect x="880" y="242" width="112" height="44" rx="9" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+<text x="936" y="270" class="cell" text-anchor="middle">user₂</text>
+<text x="1030" y="270" class="node-sub" text-anchor="start">前 4 块命中，只写新增</text>
+<text x="75" y="344" class="node-title" text-anchor="start">第 2 轮：工具重排</text>
+<rect x="270" y="314" width="112" height="44" rx="9" fill="#fce7f3" stroke="#db2777" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="326" y="342" class="cell" text-anchor="middle">tools[B,A]</text>
+<rect x="392" y="314" width="112" height="44" rx="9" fill="#fce7f3" stroke="#db2777" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="448" y="342" class="cell" text-anchor="middle">system</text>
+<rect x="514" y="314" width="112" height="44" rx="9" fill="#fce7f3" stroke="#db2777" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="570" y="342" class="cell" text-anchor="middle">user₁</text>
+<rect x="636" y="314" width="112" height="44" rx="9" fill="#fce7f3" stroke="#db2777" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="692" y="342" class="cell" text-anchor="middle">工具往返₁</text>
+<rect x="758" y="314" width="112" height="44" rx="9" fill="#fce7f3" stroke="#db2777" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="814" y="342" class="cell" text-anchor="middle">工具往返₂</text>
+<rect x="880" y="314" width="112" height="44" rx="9" fill="#fce7f3" stroke="#db2777" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="936" y="342" class="cell" text-anchor="middle">user₂</text>
+<text x="1030" y="342" class="node-sub" text-anchor="start">首块哈希变化，全部重算</text>
+<text x="75" y="416" class="node-title" text-anchor="start">压缩之后</text>
+<rect x="270" y="386" width="112" height="44" rx="9" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+<text x="326" y="414" class="cell" text-anchor="middle">tools[A,B]</text>
+<rect x="392" y="386" width="112" height="44" rx="9" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+<text x="448" y="414" class="cell" text-anchor="middle">system</text>
+<rect x="514" y="386" width="112" height="44" rx="9" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+<text x="570" y="414" class="cell" text-anchor="middle">摘要</text>
+<rect x="636" y="386" width="112" height="44" rx="9" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+<text x="692" y="414" class="cell" text-anchor="middle">user₃</text>
+<text x="1030" y="414" class="node-sub" text-anchor="start">稳定前缀仍命中</text>
+
+
+  <!-- Legend -->
+  <rect x="270" y="456" width="26" height="16" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="304" y="469" class="tiny">命中：跳过 Prefill</text>
+  <rect x="440" y="456" width="26" height="16" rx="4" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="474" y="469" class="tiny">写入：计算并缓存</text>
+  <rect x="610" y="456" width="26" height="16" rx="4" fill="#fce7f3" stroke="#db2777" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="644" y="469" class="tiny">失配：内容相同也要重算</text>
+
+  <!-- vLLM region -->
+  <text x="70" y="552" class="region-title" fill="#7c3aed">② vLLM APC：链式块哈希</text>
+  <path d="M235 610 H271" class="line" stroke="#7c3aed" stroke-width="2.6" marker-end="url(#arrow-purple)"/>
+  <path d="M455 610 H491" class="line" stroke="#7c3aed" stroke-width="2.6" marker-end="url(#arrow-purple)"/>
+  <path d="M370 640 V694" class="line" stroke="#7c3aed" stroke-width="2.6" marker-end="url(#arrow-purple)"/>
+
+  <rect x="75" y="578" width="160" height="62" rx="12" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="155" y="604" class="code" text-anchor="middle">h1 = hash(</text>
+  <text x="155" y="626" class="code" text-anchor="middle">∅, 块1, extra)</text>
+  <rect x="275" y="578" width="180" height="62" rx="12" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="365" y="604" class="code" text-anchor="middle">h2 = hash(</text>
+  <text x="365" y="626" class="code" text-anchor="middle">h1, 块2, extra)</text>
+  <rect x="495" y="578" width="170" height="62" rx="12" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="580" y="604" class="code" text-anchor="middle">h3 = hash(</text>
+  <text x="580" y="626" class="code" text-anchor="middle">h2, 块3, extra)</text>
+
+  <rect x="185" y="698" width="370" height="112" rx="14" fill="#ffffff" stroke="#a78bfa" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="370" y="724" class="node-title" text-anchor="middle">全局表：块哈希 → 物理块</text>
+  <text x="370" y="750" class="code" text-anchor="middle">h1 → #7   ref=2</text>
+  <text x="370" y="772" class="code" text-anchor="middle">h2 → #3   ref=2</text>
+  <text x="370" y="794" class="code" text-anchor="middle">h3 → #12  ref=1</text>
+
+  <text x="75" y="846" class="node-sub">extra = LoRA ID · 多模态哈希 · cache_salt（租户隔离）</text>
+  <text x="75" y="872" class="node-sub">只缓存写满的块；ref=0 进入空闲队列，仍可命中</text>
+  <text x="75" y="898" class="node-sub">分配新块时从队头取最久未用的块，此时才淘汰</text>
+
+  <!-- SGLang region -->
+  <text x="770" y="552" class="region-title" fill="#16a34a">③ SGLang RadixAttention：基数树</text>
+  <path d="M1070 604 V640" class="line" stroke="#16a34a" stroke-width="2.6"/>
+  <path d="M1070 690 V712 H920 V740" class="line" stroke="#16a34a" stroke-width="2.6"/>
+  <path d="M1070 712 H1220 V740" class="line" stroke="#16a34a" stroke-width="2.6"/>
+  <path d="M920 786 V812" class="line" stroke="#16a34a" stroke-width="2.6"/>
+
+  <circle cx="1070" cy="590" r="14" fill="#ffffff" stroke="#16a34a" stroke-width="2.2"/>
+  <text x="1096" y="595" class="tiny">root</text>
+  <rect x="960" y="642" width="220" height="48" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="1070" y="672" class="cell" text-anchor="middle">tools + system（共享前缀）</text>
+  <rect x="820" y="742" width="200" height="44" rx="12" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+  <text x="920" y="769" class="cell" text-anchor="middle">会话 A 的历史</text>
+  <rect x="1120" y="742" width="200" height="44" rx="12" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+  <text x="1220" y="769" class="cell" text-anchor="middle">会话 B 的历史</text>
+  <rect x="820" y="814" width="200" height="44" rx="12" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="920" y="841" class="cell" text-anchor="middle">A 第 2 轮新增</text>
+
+  <text x="1060" y="832" class="node-sub">最长前缀匹配，未命中部分</text>
+  <text x="1060" y="854" class="node-sub">作为新分支插入</text>
+  <text x="770" y="898" class="node-sub">显存不足时按 LRU 淘汰叶子；调度优先执行共享前缀更长的请求</text>
+</svg>

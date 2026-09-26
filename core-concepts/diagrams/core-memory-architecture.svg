@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 870">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="11" refX="13" refY="5.5" orient="auto">
+      <path d="M0,0 L14,5.5 L0,11 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="11" refX="13" refY="5.5" orient="auto">
+      <path d="M0,0 L14,5.5 L0,11 Z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-pink" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="11" refX="13" refY="5.5" orient="auto">
+      <path d="M0,0 L14,5.5 L0,11 Z" fill="#db2777"/>
+    </marker>
+    <marker id="arrow-purple" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="11" refX="13" refY="5.5" orient="auto">
+      <path d="M0,0 L14,5.5 L0,11 Z" fill="#7c3aed"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 17px; font-weight: 650; }
+      .node-sub { font-size: 13.5px; fill: #536174; }
+      .tiny { font-size: 12px; fill: #64748b; }
+      .label { font-size: 13px; font-weight: 600; paint-order: stroke; stroke: #ffffff; stroke-width: 5px; stroke-linejoin: round; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="870" fill="#ffffff"/>
+  <rect width="1440" height="870" fill="url(#paper)"/>
+
+  <text x="40" y="55" class="title">Agent 记忆分层：常驻层有界，按需层可检索</text>
+  <text x="40" y="83" class="subtitle">模型只读取左侧的单次请求；记忆经 Harness 的写入闸门落到窗口外，再经检索器回到上下文</text>
+
+  <!-- Regions -->
+  <rect x="40" y="120" width="420" height="600" rx="24" fill="#f8fbff" stroke="#60a5fa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <rect x="520" y="120" width="380" height="600" rx="24" fill="#fbf9ff" stroke="#a78bfa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <rect x="960" y="120" width="440" height="600" rx="24" fill="#fffaf2" stroke="#fb923c" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+
+  <!-- Connectors (drawn before nodes) -->
+  <!-- recall: semantic -> retriever -> recalled snippets -->
+  <path d="M990 235 H875" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M545 235 H500 V350 H430" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <!-- write: output -> gate -> episodic -->
+  <path d="M430 580 H545" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <path d="M875 580 H930 V407 H990" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <!-- maintenance -->
+  <path d="M875 380 H956" class="line" stroke="#7c3aed" stroke-width="2.4" stroke-dasharray="7 6" marker-end="url(#arrow-purple)"/>
+  <!-- consolidation loops on outer channel -->
+  <path d="M1310 395 H1350 V235 H1312" class="line" stroke="#db2777" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#arrow-pink)"/>
+  <path d="M1310 420 H1380 V580 H1312" class="line" stroke="#db2777" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#arrow-pink)"/>
+
+  <!-- Region titles -->
+  <text x="62" y="157" class="region-title" fill="#2563eb">① 单次请求上下文（工作记忆）</text>
+  <text x="542" y="157" class="region-title" fill="#7c3aed">② Harness 记忆管理</text>
+  <text x="982" y="157" class="region-title" fill="#ea580c">③ 窗口外长期存储</text>
+
+  <!-- Left nodes -->
+  <rect x="70" y="180" width="360" height="100" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="250" y="213" class="node-title" text-anchor="middle">稳定前缀</text>
+  <text x="250" y="240" class="node-sub" text-anchor="middle">system / 规则 / 记忆快照或索引</text>
+  <text x="250" y="263" class="tiny" text-anchor="middle">有硬上限，会话内尽量不改写</text>
+
+  <rect x="70" y="305" width="360" height="90" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+  <text x="250" y="340" class="node-title" text-anchor="middle">召回片段</text>
+  <text x="250" y="367" class="node-sub" text-anchor="middle">预取或工具读取的记忆条目</text>
+
+  <rect x="70" y="420" width="360" height="90" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="250" y="455" class="node-title" text-anchor="middle">活动历史</text>
+  <text x="250" y="482" class="node-sub" text-anchor="middle">近期消息 + 压缩摘要</text>
+
+  <rect x="70" y="535" width="360" height="90" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+  <text x="250" y="570" class="node-title" text-anchor="middle">当前输入与模型输出</text>
+  <text x="250" y="597" class="node-sub" text-anchor="middle">用户请求 / 回答 / memory 工具调用</text>
+
+  <text x="250" y="675" class="tiny" text-anchor="middle">模型只读取这一层，每次请求重建</text>
+
+  <!-- Middle nodes -->
+  <rect x="545" y="180" width="330" height="110" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="710" y="214" class="node-title" text-anchor="middle">检索器</text>
+  <text x="710" y="241" class="node-sub" text-anchor="middle">常驻注入 · 每轮预取 · 按需搜索</text>
+  <text x="710" y="266" class="tiny" text-anchor="middle">相关性 · 近期性 · 重要性加权</text>
+
+  <rect x="545" y="340" width="330" height="110" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="710" y="374" class="node-title" text-anchor="middle">整合与淘汰</text>
+  <text x="710" y="401" class="node-sub" text-anchor="middle">去重 · 冲突覆盖 · 衰减 · 删除</text>
+  <text x="710" y="426" class="tiny" text-anchor="middle">多在后台运行，保留可回滚基线</text>
+
+  <rect x="545" y="525" width="330" height="110" rx="16" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+  <text x="710" y="559" class="node-title" text-anchor="middle">写入闸门</text>
+  <text x="710" y="586" class="node-sub" text-anchor="middle">值不值得记 · 脱敏 · 注入扫描</text>
+  <text x="710" y="611" class="tiny" text-anchor="middle">来源：模型工具 / 后台抽取 / 用户</text>
+
+  <!-- Right nodes -->
+  <rect x="990" y="180" width="320" height="110" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="1150" y="214" class="node-title" text-anchor="middle">语义记忆</text>
+  <text x="1150" y="241" class="node-sub" text-anchor="middle">画像 · 事实 · 项目约定</text>
+  <text x="1150" y="266" class="tiny" text-anchor="middle">MEMORY.md / USER.md / facts 表</text>
+
+  <rect x="990" y="352" width="320" height="110" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+  <text x="1150" y="386" class="node-title" text-anchor="middle">情景记忆</text>
+  <text x="1150" y="413" class="node-sub" text-anchor="middle">transcript · rollout 摘要 · 每日笔记</text>
+  <text x="1150" y="438" class="tiny" text-anchor="middle">追加为主，按时间与相关性检索</text>
+
+  <rect x="990" y="525" width="320" height="110" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+  <text x="1150" y="559" class="node-title" text-anchor="middle">程序性记忆</text>
+  <text x="1150" y="586" class="node-sub" text-anchor="middle">规则文件 · Skills · Agent 代码</text>
+  <text x="1150" y="611" class="tiny" text-anchor="middle">影响面大，变更需审核</text>
+
+  <!-- Arrow labels -->
+  <text x="932" y="222" class="label" fill="#2563eb" text-anchor="middle">召回</text>
+  <text x="480" y="296" class="label" fill="#2563eb" text-anchor="middle">注入</text>
+  <text x="490" y="566" class="label" fill="#16a34a" text-anchor="middle">写入请求</text>
+  <text x="930" y="605" class="label" fill="#16a34a" text-anchor="middle">持久化</text>
+  <text x="916" y="368" class="label" fill="#7c3aed" text-anchor="middle">维护</text>
+  <text x="1334" y="318" class="label" fill="#db2777" transform="rotate(-90 1334 318)" text-anchor="middle">反思 / 整合</text>
+  <text x="1368" y="505" class="label" fill="#db2777" transform="rotate(-90 1368 505)" text-anchor="middle">沉淀流程</text>
+
+  <!-- Legend -->
+  <g>
+    <rect x="40" y="760" width="1360" height="70" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+    <path d="M70 795 H120" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+    <text x="132" y="800" class="node-sub">写入路径</text>
+    <path d="M260 795 H310" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+    <text x="322" y="800" class="node-sub">召回路径</text>
+    <path d="M450 795 H500" class="line" stroke="#7c3aed" stroke-width="2.4" stroke-dasharray="7 6" marker-end="url(#arrow-purple)"/>
+    <text x="512" y="800" class="node-sub">后台维护</text>
+    <path d="M640 795 H690" class="line" stroke="#db2777" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#arrow-pink)"/>
+    <text x="702" y="800" class="node-sub">情景记忆升级为语义或程序性记忆</text>
+    <text x="1380" y="800" class="tiny" text-anchor="end">分类参考 CoALA；分层参考 MemGPT</text>
+  </g>
+</svg>

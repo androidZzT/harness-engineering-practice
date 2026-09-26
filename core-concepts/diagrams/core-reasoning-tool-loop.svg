@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 960">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-dark" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#334155"/></marker>
+    <marker id="arrow-blue" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#2563eb"/></marker>
+    <marker id="arrow-green" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#16a34a"/></marker>
+    <marker id="arrow-pink" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#db2777"/></marker>
+    <marker id="arrow-orange" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#ea580c"/></marker>
+    <marker id="arrow-purple" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="#7c3aed"/></marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .tiny { font-size: 12px; fill: #64748b; }
+      .mono { font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; font-size: 12.5px; fill: #172033; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <rect width="100%" height="100%" fill="url(#paper)"/>
+  <text x="55" y="55" class="title">工具循环中的推理延续：assistant 消息原样回传</text>
+  <text x="55" y="83" class="subtitle">工具调用暂停的是同一个回答；tool_result 回来后，模型要在原来的推理上继续</text>
+
+  <!-- Lifelines -->
+  <path d="M250 172 V598" class="line" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 6"/>
+  <path d="M720 172 V598" class="line" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 6"/>
+  <path d="M1150 172 V598" class="line" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 6"/>
+
+  <!-- Loop bracket -->
+  <rect x="120" y="445" width="1170" height="150" rx="16" fill="none" stroke="#db2777" stroke-width="2" stroke-dasharray="8 6"/>
+  <rect x="134" y="435" width="252" height="22" fill="#ffffff"/>
+  <text x="140" y="451" class="tiny" fill="#be185d">循环：直到不再返回 tool_use</text>
+
+  <!-- Messages -->
+  <path d="M252 222 H716" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <text x="485" y="210" class="node-sub" text-anchor="middle">① 请求 1：system + tools + user 任务</text>
+
+  <path d="M718 292 H254" class="line" stroke="#7c3aed" stroke-width="2.6" marker-end="url(#arrow-purple)"/>
+  <text x="485" y="280" class="node-sub" text-anchor="middle">② 响应 1：thinking（signature）+ tool_use</text>
+  <text x="485" y="314" class="tiny" text-anchor="middle">stop_reason = tool_use；thinking 文本可能为空</text>
+
+  <path d="M252 362 H1146" class="line" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-orange)"/>
+  <text x="935" y="350" class="node-sub" text-anchor="middle">③ 校验权限并执行 read_file</text>
+
+  <path d="M1148 412 H254" class="line" stroke="#16a34a" stroke-width="2.6" marker-end="url(#arrow-green)"/>
+  <text x="930" y="400" class="node-sub" text-anchor="middle">④ 工具结果</text>
+
+  <path d="M252 492 H716" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <text x="485" y="480" class="node-sub" text-anchor="middle">⑤ 请求 2：原前缀 + assistant（原样）+ tool_result</text>
+
+  <path d="M718 562 H254" class="line" stroke="#7c3aed" stroke-width="2.6" marker-end="url(#arrow-purple)"/>
+  <text x="485" y="550" class="node-sub" text-anchor="middle">⑥ 交错思考 → 下一个 tool_use 或最终 text</text>
+  <text x="485" y="584" class="tiny" text-anchor="middle">用户新输入后的首个请求通常承担大部分推理</text>
+
+  <!-- Lifeline heads -->
+  <rect x="150" y="120" width="200" height="52" rx="14" fill="#ffffff" stroke="#60a5fa" stroke-width="2.2"/>
+  <text x="250" y="152" class="node-title" text-anchor="middle">Harness</text>
+  <rect x="590" y="120" width="260" height="52" rx="14" fill="#ffffff" stroke="#a78bfa" stroke-width="2.2"/>
+  <text x="720" y="152" class="node-title" text-anchor="middle">模型 API（推理模型）</text>
+  <rect x="1050" y="120" width="200" height="52" rx="14" fill="#ffffff" stroke="#fb923c" stroke-width="2.2"/>
+  <text x="1150" y="152" class="node-title" text-anchor="middle">工具执行环境</text>
+
+  <!-- Bottom: request 2 messages -->
+  <rect x="55" y="635" width="680" height="285" rx="20" fill="#fbf9ff" stroke="#a78bfa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="80" y="670" class="region-title" fill="#7c3aed">请求 2 的 messages：只在末尾追加</text>
+  <rect x="80" y="690" width="630" height="40" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="1.6"/>
+  <text x="96" y="715" class="mono">[user]  修复订单接口的签名校验</text>
+  <rect x="80" y="742" width="630" height="84" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+  <text x="96" y="768" class="mono">[assistant] thinking { thinking: "", signature: "Eos…" }</text>
+  <text x="199" y="792" class="mono">tool_use { id: "toolu_01", name: "read_file" }</text>
+  <text x="96" y="815" class="tiny" fill="#6d28d9">↑ 与响应 1 完全一致：不编辑、不重排、不部分丢弃</text>
+  <rect x="80" y="838" width="630" height="40" rx="10" fill="#ffffff" stroke="#34d399" stroke-width="1.6"/>
+  <text x="96" y="863" class="mono">[user]  tool_result { tool_use_id: "toolu_01", … }</text>
+  <text x="80" y="903" class="tiny">前面的 system、tools 与更早消息任一改动，其后的推理块即失效</text>
+
+  <!-- Bottom: rules -->
+  <rect x="770" y="635" width="615" height="285" rx="20" fill="#fffaf2" stroke="#fb923c" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="795" y="670" class="region-title" fill="#ea580c">三家的延续载体与计费</text>
+  <rect x="795" y="690" width="565" height="62" rx="12" fill="#ffffff" stroke="#a78bfa" stroke-width="1.8"/>
+  <text x="812" y="716" class="node-title">Claude：thinking 块 + signature</text>
+  <text x="812" y="740" class="node-sub">display=omitted 只是不显示；redacted_thinking 同样原样回传</text>
+  <rect x="795" y="764" width="565" height="62" rx="12" fill="#ffffff" stroke="#60a5fa" stroke-width="1.8"/>
+  <text x="812" y="790" class="node-title">OpenAI：reasoning item + encrypted_content</text>
+  <text x="812" y="814" class="node-sub">store=false 时通过 include 取回；或交给 previous_response_id</text>
+  <rect x="795" y="838" width="565" height="62" rx="12" fill="#ffffff" stroke="#34d399" stroke-width="1.8"/>
+  <text x="812" y="864" class="node-title">Gemini：thought 块 + thought signature</text>
+  <text x="812" y="888" class="node-sub">三家都把推理 Token 按输出计费，并计入当前请求的窗口</text>
+</svg>

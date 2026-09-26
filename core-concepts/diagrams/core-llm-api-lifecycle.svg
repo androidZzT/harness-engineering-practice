@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1000">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#ea580c"/>
+    </marker>
+    <marker id="arrow-pink" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#db2777"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#475569"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 17px; font-weight: 650; }
+      .node-sub { font-size: 14px; fill: #536174; }
+      .tiny { font-size: 12.5px; fill: #64748b; }
+      .code { font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; font-size: 13px; fill: #172033; }
+      .label { font-size: 13px; font-weight: 600; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="1000" fill="#ffffff"/>
+  <rect width="1440" height="1000" fill="url(#paper)"/>
+
+  <text x="55" y="55" class="title">一次 LLM API 调用的生命周期</text>
+  <text x="55" y="83" class="subtitle">无状态请求 → SSE 事件流 → 按 stop_reason 分流；tool_use 回到下一轮请求，错误进入重试或修正</text>
+
+  <!-- Connectors (drawn before nodes) -->
+  <path d="M560 206 V266" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M560 356 V416" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M560 580 V616" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M560 712 V742" class="line" stroke="#2563eb" stroke-width="3"/>
+  <path d="M235 742 H1135" class="line" stroke="#2563eb" stroke-width="3"/>
+  <path d="M235 742 V776" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M535 742 V776" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <path d="M835 742 V776" class="line" stroke="#ea580c" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <path d="M1135 742 V776" class="line" stroke="#db2777" stroke-width="3" marker-end="url(#arrow-pink)"/>
+
+  <!-- Tool loop on outer left lane -->
+  <path d="M535 872 V922 H60 V162 H296" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+
+  <!-- HTTP error branch and retry -->
+  <path d="M822 313 H956" class="line" stroke="#ea580c" stroke-width="2.8" marker-end="url(#arrow-orange)"/>
+  <path d="M1160 250 V236 H700 V266" class="line" stroke="#ea580c" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#arrow-orange)"/>
+  <!-- In-stream error -->
+  <path d="M822 452 H1160 V378" class="line" stroke="#ea580c" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#arrow-orange)"/>
+  <!-- Usage -->
+  <path d="M822 545 H956" class="line" stroke="#475569" stroke-width="2.4" marker-end="url(#arrow-gray)"/>
+
+  <!-- Connector labels -->
+  <text x="889" y="303" class="label" fill="#ea580c" text-anchor="middle">非 2xx</text>
+  <text x="930" y="228" class="label" fill="#ea580c" text-anchor="middle">退避后重发同一请求</text>
+  <text x="990" y="442" class="label" fill="#ea580c" text-anchor="middle">HTTP 200 之后的 event: error</text>
+  <text x="80" y="948" class="label" fill="#16a34a">下一轮：重放完整历史 + tool_result，重新发起无状态请求</text>
+
+  <!-- A: request assembly -->
+  <rect x="300" y="120" width="520" height="86" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="560" y="150" class="node-title" text-anchor="middle">① Harness 组装请求</text>
+  <text x="560" y="175" class="node-sub" text-anchor="middle">tools → system → messages（渲染顺序即缓存前缀）</text>
+  <text x="560" y="195" class="tiny" text-anchor="middle">历史重放 · 输出上限 · 结构化输出 · cache_control</text>
+
+  <!-- B: HTTP request -->
+  <rect x="300" y="270" width="520" height="86" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="560" y="300" class="node-title" text-anchor="middle">② POST /v1/messages</text>
+  <text x="560" y="325" class="node-sub" text-anchor="middle">无状态 HTTP：每次携带完整的模型可见输入</text>
+  <text x="560" y="345" class="tiny" text-anchor="middle">stream: true · max_tokens · request-id 响应头</text>
+
+  <!-- C: SSE stream -->
+  <rect x="300" y="420" width="520" height="160" rx="18" fill="#fbf9ff" stroke="#a78bfa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="322" y="450" class="region-title" fill="#7c3aed">③ SSE 事件流</text>
+  <rect x="322" y="466" width="150" height="34" rx="10" fill="#ffffff" stroke="#a78bfa" stroke-width="1.8"/>
+  <text x="397" y="488" class="code" text-anchor="middle">message_start</text>
+  <rect x="486" y="466" width="314" height="34" rx="10" fill="#ffffff" stroke="#a78bfa" stroke-width="1.8"/>
+  <text x="643" y="488" class="code" text-anchor="middle">content_block_start/delta/stop</text>
+  <rect x="322" y="514" width="330" height="34" rx="10" fill="#ffffff" stroke="#a78bfa" stroke-width="1.8"/>
+  <text x="487" y="536" class="code" text-anchor="middle">message_delta (stop_reason, usage)</text>
+  <rect x="666" y="514" width="134" height="34" rx="10" fill="#ffffff" stroke="#a78bfa" stroke-width="1.8"/>
+  <text x="733" y="536" class="code" text-anchor="middle">message_stop</text>
+  <text x="560" y="564" class="tiny" text-anchor="middle">text_delta · thinking_delta · input_json_delta（工具参数块结束后才定稿）</text>
+
+  <!-- D: decision -->
+  <polygon points="560,620 680,666 560,712 440,666" fill="#ffffff" stroke="#fb923c" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="560" y="672" class="node-title" text-anchor="middle">stop_reason ?</text>
+
+  <!-- Output branches -->
+  <rect x="105" y="780" width="260" height="92" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="235" y="810" class="code" text-anchor="middle">end_turn · stop_sequence</text>
+  <text x="235" y="836" class="node-sub" text-anchor="middle">正常结束</text>
+  <text x="235" y="858" class="tiny" text-anchor="middle">交付结果或等待用户输入</text>
+
+  <rect x="405" y="780" width="260" height="92" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="535" y="810" class="code" text-anchor="middle">tool_use</text>
+  <text x="535" y="836" class="node-sub" text-anchor="middle">Harness 执行工具</text>
+  <text x="535" y="858" class="tiny" text-anchor="middle">tool_result 按 tool_use_id 追加</text>
+
+  <rect x="705" y="780" width="260" height="92" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="835" y="810" class="code" text-anchor="middle">max_tokens · context_exceeded</text>
+  <text x="835" y="836" class="node-sub" text-anchor="middle">视为截断</text>
+  <text x="835" y="858" class="tiny" text-anchor="middle">续写、提高上限或压缩上下文</text>
+
+  <rect x="1005" y="780" width="260" height="92" rx="16" fill="#ffffff" stroke="#f472b6" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="1135" y="810" class="code" text-anchor="middle">refusal</text>
+  <text x="1135" y="836" class="node-sub" text-anchor="middle">拒答或安全拦截</text>
+  <text x="1135" y="858" class="tiny" text-anchor="middle">读 stop_details，回退模型或终止</text>
+
+  <!-- E: HTTP errors -->
+  <rect x="960" y="252" width="400" height="124" rx="16" fill="#fffaf2" stroke="#fb923c" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="1160" y="282" class="node-title" text-anchor="middle">HTTP 错误（响应开始前）</text>
+  <text x="1160" y="308" class="node-sub" text-anchor="middle">429 · 529 overloaded · 5xx → 退避重试</text>
+  <text x="1160" y="332" class="node-sub" text-anchor="middle">遵守 retry-after，指数退避 + 抖动</text>
+  <text x="1160" y="358" class="tiny" text-anchor="middle">400 / 401 / 413 / 额度用尽 → 修正请求，不重试</text>
+
+  <!-- U: usage -->
+  <rect x="960" y="492" width="400" height="110" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="1160" y="522" class="node-title" text-anchor="middle">usage 计量</text>
+  <text x="1160" y="548" class="code" text-anchor="middle">input · output · cache_creation · cache_read</text>
+  <text x="1160" y="576" class="tiny" text-anchor="middle">计费对账 · 限流预估 · 下一轮上下文预算</text>
+
+  <!-- Legend -->
+  <g>
+    <path d="M820 948 H860" class="line" stroke="#2563eb" stroke-width="3"/>
+    <text x="870" y="953" class="tiny">主路径</text>
+    <path d="M940 948 H980" class="line" stroke="#16a34a" stroke-width="3"/>
+    <text x="990" y="953" class="tiny">工具回路</text>
+    <path d="M1072 948 H1112" class="line" stroke="#ea580c" stroke-width="2.6" stroke-dasharray="8 6"/>
+    <text x="1122" y="953" class="tiny">错误与重试</text>
+    <path d="M1216 948 H1256" class="line" stroke="#475569" stroke-width="2.4"/>
+    <text x="1266" y="953" class="tiny">计量</text>
+  </g>
+</svg>

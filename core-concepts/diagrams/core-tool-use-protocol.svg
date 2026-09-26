@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 1000">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#ea580c"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 28px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .msg { font-size: 14px; font-weight: 600; }
+      .msg-sub { font-size: 12.5px; fill: #536174; }
+      .cell { font-size: 13.5px; }
+      .head { font-size: 14px; font-weight: 700; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1320" height="1000" fill="#ffffff"/>
+  <rect width="1320" height="1000" fill="url(#paper)"/>
+
+  <text x="40" y="52" class="title">Function Calling 协议全流程</text>
+  <text x="40" y="80" class="subtitle">模型只产出“调用意图”；执行、授权和结果回填都在 Harness，结果按调用 id 配对后才能继续生成</text>
+
+  <!-- Lifelines -->
+  <path d="M200 170 V690" class="line" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 6"/>
+  <path d="M620 170 V690" class="line" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 6"/>
+  <path d="M1020 170 V690" class="line" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 6"/>
+
+  <!-- Messages -->
+  <path d="M620 210 H1015" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <path d="M1020 370 H625" class="line" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-orange)"/>
+  <path d="M620 440 H205" class="line" stroke="#16a34a" stroke-width="2.6" marker-end="url(#arrow-green)"/>
+  <path d="M200 510 H615" class="line" stroke="#16a34a" stroke-width="2.4" stroke-dasharray="8 6" marker-end="url(#arrow-green)"/>
+  <path d="M620 580 H1015" class="line" stroke="#2563eb" stroke-width="2.6" marker-end="url(#arrow-blue)"/>
+  <path d="M1020 650 H625" class="line" stroke="#ea580c" stroke-width="2.4" stroke-dasharray="8 6" marker-end="url(#arrow-orange)"/>
+
+  <!-- Actor heads -->
+  <g>
+    <rect x="80" y="110" width="240" height="60" rx="14" fill="#ffffff" stroke="#16a34a" stroke-width="2.2"/>
+    <text x="200" y="137" class="node-title" text-anchor="middle">工具执行器</text>
+    <text x="200" y="158" class="node-sub" text-anchor="middle">本地函数 / 业务 API / MCP</text>
+  </g>
+  <g>
+    <rect x="500" y="110" width="240" height="60" rx="14" fill="#ffffff" stroke="#60a5fa" stroke-width="2.2"/>
+    <text x="620" y="137" class="node-title" text-anchor="middle">Harness（应用）</text>
+    <text x="620" y="158" class="node-sub" text-anchor="middle">持有历史、执行与权限</text>
+  </g>
+  <g>
+    <rect x="900" y="110" width="240" height="60" rx="14" fill="#ffffff" stroke="#fb923c" stroke-width="2.2"/>
+    <text x="1020" y="137" class="node-title" text-anchor="middle">模型 API</text>
+    <text x="1020" y="158" class="node-sub" text-anchor="middle">无状态推理 + 服务端工具</text>
+  </g>
+
+  <!-- Model decision box -->
+  <g>
+    <rect x="850" y="250" width="340" height="76" rx="14" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+    <text x="1020" y="278" class="node-title" text-anchor="middle">② 模型决定是否调用</text>
+    <text x="1020" y="300" class="node-sub" text-anchor="middle">训练得到的调用格式 + tool_choice</text>
+    <text x="1020" y="318" class="node-sub" text-anchor="middle">strict：按 schema 语法约束解码</text>
+  </g>
+
+  <!-- Harness self note -->
+  <g>
+    <rect x="1060" y="410" width="230" height="130" rx="14" fill="#f5f3ff" stroke="#a78bfa" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="1175" y="440" class="node-title" text-anchor="middle">服务端工具</text>
+    <text x="1175" y="466" class="node-sub" text-anchor="middle">web search / code</text>
+    <text x="1175" y="486" class="node-sub" text-anchor="middle">execution 在 API 内</text>
+    <text x="1175" y="506" class="node-sub" text-anchor="middle">循环执行，结果随</text>
+    <text x="1175" y="526" class="node-sub" text-anchor="middle">同一响应返回</text>
+  </g>
+
+  <!-- Message labels -->
+  <text x="818" y="198" class="msg" text-anchor="middle">① 请求：messages + tools[] + tool_choice</text>
+  <text x="822" y="344" class="msg" text-anchor="middle">③ 返回调用意图</text>
+  <text x="822" y="360" class="msg-sub" text-anchor="middle">tool_use {id, name, input} / function_call {call_id}</text>
+  <text x="410" y="414" class="msg" text-anchor="middle">④ 校验 → 授权 → 执行</text>
+  <text x="410" y="430" class="msg-sub" text-anchor="middle">超时、取消、并发控制</text>
+  <text x="410" y="498" class="msg" text-anchor="middle">⑤ 结果或错误信息</text>
+  <text x="820" y="554" class="msg" text-anchor="middle">⑥ 回填结果（按 id 配对）</text>
+  <text x="820" y="570" class="msg-sub" text-anchor="middle">tool_result / function_call_output</text>
+  <text x="820" y="638" class="msg" text-anchor="middle">⑦ 继续生成：最终回复或下一批调用</text>
+
+  <!-- Comparison table -->
+  <g>
+    <rect x="40" y="720" width="1240" height="250" rx="18" fill="#f8fbff" stroke="#60a5fa" stroke-width="2" stroke-dasharray="9 6" filter="url(#rough)"/>
+    <text x="60" y="752" class="head">环节</text>
+    <text x="260" y="752" class="head" fill="#c2410c">Anthropic Messages API</text>
+    <text x="780" y="752" class="head" fill="#1d4ed8">OpenAI Responses API</text>
+    <path d="M60 764 H1260" class="line" stroke="#cbd5e1" stroke-width="1.5"/>
+    <text x="60" y="792" class="cell">工具定义</text>
+    <text x="260" y="792" class="cell">name / description / input_schema / strict</text>
+    <text x="780" y="792" class="cell">type:function / name / parameters / strict</text>
+    <text x="60" y="826" class="cell">调用</text>
+    <text x="260" y="826" class="cell">assistant 内容块 tool_use，input 为 JSON 对象</text>
+    <text x="780" y="826" class="cell">输出项 function_call，arguments 为 JSON 字符串</text>
+    <text x="60" y="860" class="cell">回填</text>
+    <text x="260" y="860" class="cell">下一条 user 消息里的 tool_result 块，排在文本前</text>
+    <text x="780" y="860" class="cell">输入项 function_call_output，带 call_id</text>
+    <text x="60" y="894" class="cell">错误</text>
+    <text x="260" y="894" class="cell">tool_result.is_error = true + 说明</text>
+    <text x="780" y="894" class="cell">在 output 文本中描述错误</text>
+    <text x="60" y="928" class="cell">停止信号</text>
+    <text x="260" y="928" class="cell">stop_reason: tool_use / end_turn / pause_turn</text>
+    <text x="780" y="928" class="cell">输出中是否含 function_call 项、status</text>
+    <text x="60" y="956" class="cell" fill="#64748b">服务端工具</text>
+    <text x="260" y="956" class="cell" fill="#64748b">server_tool_use + *_tool_result（srvtoolu_ id）</text>
+    <text x="780" y="956" class="cell" fill="#64748b">web_search_call 等托管工具输出项</text>
+  </g>
+</svg>

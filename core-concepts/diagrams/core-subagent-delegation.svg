@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#ea580c"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 16px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .tiny { font-size: 12px; fill: #64748b; }
+      .mono { font-family: "JetBrains Mono", "SF Mono", monospace; font-size: 12.5px; fill: #334155; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="#ffffff"/>
+  <rect width="1440" height="900" fill="url(#paper)"/>
+
+  <text x="55" y="55" class="title">Subagent 委派：一次工具调用换一个隔离上下文</text>
+  <text x="55" y="83" class="subtitle">父 Agent 只付出“任务描述 + 摘要结果”的 Token；子 Agent 的搜索、读文件和试错轨迹留在自己的窗口里</text>
+
+  <!-- Regions -->
+  <rect x="45" y="120" width="380" height="600" rx="24" fill="#f8fbff" stroke="#60a5fa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <rect x="470" y="120" width="430" height="600" rx="24" fill="#fbf9ff" stroke="#a78bfa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <rect x="945" y="120" width="450" height="600" rx="24" fill="#fffaf2" stroke="#fb923c" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+
+  <!-- Connectors (drawn before nodes) -->
+  <path d="M395 330 H505" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M865 330 H922 V245 H978" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M1250 650 V770 H912" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <path d="M620 770 H235 V652" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <path d="M1300 400 H1335 V525 H1302" class="line" stroke="#ea580c" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#arrow-orange)"/>
+  <path d="M1170 305 V343" class="line" stroke="#2563eb" stroke-width="2.4" marker-end="url(#arrow-blue)"/>
+  <path d="M1170 560 V583" class="line" stroke="#16a34a" stroke-width="2.4" marker-end="url(#arrow-green)"/>
+
+  <!-- Region titles -->
+  <text x="70" y="157" class="region-title" fill="#2563eb">① 父 Agent 上下文</text>
+  <text x="495" y="157" class="region-title" fill="#7c3aed">② Harness 委派边界</text>
+  <text x="970" y="157" class="region-title" fill="#ea580c">③ 子 Agent 独立上下文</text>
+
+  <!-- Left -->
+  <g>
+    <rect x="75" y="185" width="320" height="86" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="235" y="217" class="node-title" text-anchor="middle">用户目标与对话历史</text>
+    <text x="235" y="243" class="node-sub" text-anchor="middle">system prompt、项目规则、已做决策</text>
+  </g>
+  <g>
+    <rect x="75" y="292" width="320" height="130" rx="16" fill="#ffffff" stroke="#2563eb" stroke-width="2.2"/>
+    <text x="235" y="322" class="node-title" text-anchor="middle">发起委派（tool_use）</text>
+    <text x="100" y="350" class="mono">Agent {</text>
+    <text x="118" y="370" class="mono">subagent_type, description,</text>
+    <text x="118" y="390" class="mono">prompt, run_in_background</text>
+    <text x="100" y="410" class="mono">}</text>
+  </g>
+  <g>
+    <rect x="75" y="522" width="320" height="130" rx="16" fill="#ffffff" stroke="#16a34a" stroke-width="2.2"/>
+    <text x="235" y="554" class="node-title" text-anchor="middle">接收结果（tool_result）</text>
+    <text x="235" y="582" class="node-sub" text-anchor="middle">最终消息 / 结构化摘要</text>
+    <text x="235" y="604" class="node-sub" text-anchor="middle">agent ID（可续跑）、状态、用量</text>
+    <text x="235" y="630" class="tiny" text-anchor="middle">父窗口只增加约 1–3k Token（示意）</text>
+  </g>
+  <text x="235" y="470" class="tiny" text-anchor="middle">前台：阻塞等待本次调用</text>
+  <text x="235" y="492" class="tiny" text-anchor="middle">后台：继续工作，完成后收到通知</text>
+
+  <!-- Middle -->
+  <g>
+    <rect x="505" y="185" width="360" height="74" rx="15" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+    <text x="685" y="215" class="node-title" text-anchor="middle">解析 Agent 定义</text>
+    <text x="685" y="241" class="node-sub" text-anchor="middle">内置类型 / 项目级 / 用户级 / 代码注入</text>
+  </g>
+  <g>
+    <rect x="505" y="280" width="360" height="150" rx="15" fill="#ffffff" stroke="#7c3aed" stroke-width="2.2"/>
+    <text x="685" y="310" class="node-title" text-anchor="middle">装配子上下文与能力</text>
+    <text x="530" y="338" class="node-sub">· 子 system prompt + 任务描述（不含父历史）</text>
+    <text x="530" y="362" class="node-sub">· 工具白名单 / 黑名单，去掉澄清类工具</text>
+    <text x="530" y="386" class="node-sub">· 权限模式、沙箱、工作目录（可 worktree）</text>
+    <text x="530" y="410" class="node-sub">· 模型与推理强度（可换小模型）</text>
+  </g>
+  <g>
+    <rect x="505" y="452" width="360" height="118" rx="15" fill="#fff7ed" stroke="#f97316" stroke-width="2.2"/>
+    <text x="685" y="482" class="node-title" text-anchor="middle">运行护栏</text>
+    <text x="530" y="510" class="node-sub">· 嵌套深度、并发数、总预算</text>
+    <text x="530" y="534" class="node-sub">· 最大轮数 / 超时，返回 partial 或 failed</text>
+    <text x="530" y="558" class="node-sub">· 结果扫描：中和伪造的控制标记</text>
+  </g>
+  <g>
+    <rect x="620" y="725" width="290" height="90" rx="18" fill="#ffffff" stroke="#16a34a" stroke-width="2.4"/>
+    <text x="765" y="758" class="node-title" text-anchor="middle">结果交接</text>
+    <text x="765" y="784" class="node-sub" text-anchor="middle">只回传最终消息，不回传中间轨迹</text>
+    <text x="765" y="804" class="tiny" text-anchor="middle">API 错误标记为失败，不冒充结论</text>
+  </g>
+
+  <!-- Right -->
+  <g>
+    <rect x="980" y="185" width="380" height="120" rx="18" fill="#ffffff" stroke="#fb923c" stroke-width="2.2"/>
+    <text x="1170" y="217" class="node-title" text-anchor="middle">初始窗口</text>
+    <text x="1170" y="245" class="node-sub" text-anchor="middle">子 system prompt + 任务描述</text>
+    <text x="1170" y="269" class="node-sub" text-anchor="middle">+ 项目规则 + 工具定义（按配置）</text>
+    <text x="1170" y="291" class="tiny" text-anchor="middle">fork 模式例外：复制父对话</text>
+  </g>
+  <g>
+    <rect x="1040" y="345" width="260" height="110" rx="16" fill="#ffffff" stroke="#ea580c" stroke-width="2.2"/>
+    <text x="1170" y="377" class="node-title" text-anchor="middle">子 Agent Loop</text>
+    <text x="1170" y="405" class="node-sub" text-anchor="middle">模型 ⇄ 工具，多轮迭代</text>
+    <text x="1170" y="429" class="tiny" text-anchor="middle">搜索、读文件、跑命令、试错</text>
+  </g>
+  <text x="1370" y="468" class="tiny" text-anchor="middle" fill="#c2410c">累积</text>
+  <g>
+    <rect x="1040" y="490" width="260" height="70" rx="14" fill="#fff1f2" stroke="#fb7185" stroke-width="2"/>
+    <text x="1170" y="518" class="node-title" text-anchor="middle">中间轨迹留在这里</text>
+    <text x="1170" y="542" class="node-sub" text-anchor="middle">例如 60–150k Token（示意）</text>
+  </g>
+  <g>
+    <rect x="1040" y="585" width="260" height="65" rx="14" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+    <text x="1170" y="613" class="node-title" text-anchor="middle">最终消息</text>
+    <text x="1170" y="636" class="node-sub" text-anchor="middle">结论 + 证据 + 未决问题</text>
+  </g>
+  <text x="1110" y="690" class="tiny" text-anchor="middle">独立转录文件，可审计、可续跑</text>
+
+  <!-- Connector labels -->
+  <text x="447" y="318" class="tiny" text-anchor="middle">委派</text>
+  <text x="893" y="318" class="tiny" text-anchor="middle">启动</text>
+  <text x="1080" y="790" class="tiny" text-anchor="middle" fill="#15803d">final message</text>
+  <text x="430" y="790" class="tiny" text-anchor="middle" fill="#15803d">tool_result 回填父历史</text>
+</svg>

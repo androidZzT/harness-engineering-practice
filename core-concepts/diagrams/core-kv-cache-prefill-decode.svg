@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 920">
+  <defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#ea580c"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-pink" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#db2777"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 17px; font-weight: 650; }
+      .node-sub { font-size: 14px; fill: #536174; }
+      .tiny { font-size: 12.5px; fill: #64748b; }
+      .code { font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; font-size: 14px; fill: #172033; }
+      .formula { font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; font-size: 20px; font-weight: 700; fill: #6d28d9; }
+      .cell { font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; font-size: 13px; fill: #172033; }
+      .label { font-size: 13px; font-weight: 600; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="920" fill="#ffffff"/>
+  <rect width="1440" height="920" fill="url(#paper)"/>
+
+  <text x="55" y="55" class="title">Prefill 与 Decode：KV Cache 在两个阶段中的读写</text>
+  <text x="55" y="83" class="subtitle">Prefill 并行写入整段提示词的 K/V；Decode 每步追加一个位置，并读取全部历史 K/V</text>
+
+  <!-- Regions -->
+  <rect x="45" y="112" width="645" height="530" rx="24" fill="#f8fbff" stroke="#60a5fa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <rect x="750" y="112" width="645" height="530" rx="24" fill="#fffaf2" stroke="#fb923c" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+
+  <!-- Connectors -->
+  <path d="M367 222 V256" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M367 356 V392" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M367 492 V526" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M1060 222 V256" class="line" stroke="#ea580c" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <path d="M1060 392 V360" class="line" stroke="#ea580c" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <path d="M1200 356 V392" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <path d="M1060 492 V526" class="line" stroke="#ea580c" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <!-- Decode loop on right outer lane -->
+  <path d="M1340 566 H1372 V178 H1182" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <!-- Shared cache between phases -->
+  <path d="M655 442 H783" class="line" stroke="#db2777" stroke-width="2.6" stroke-dasharray="8 6" marker-end="url(#arrow-pink)"/>
+
+  <text x="720" y="430" class="tiny" fill="#db2777" text-anchor="middle" style="font-weight:600">同一缓存</text>
+  <text x="1210" y="380" class="label" fill="#16a34a">追加</text>
+  <text x="982" y="380" class="label" fill="#ea580c">读取全部</text>
+  <text x="1362" y="200" class="label" fill="#16a34a" text-anchor="end">x<tspan baseline-shift="sub" font-size="75%">t+1</tspan> 作为下一步输入</text>
+
+  <text x="70" y="148" class="region-title" fill="#2563eb">① Prefill：一次处理整段提示词</text>
+  <text x="775" y="148" class="region-title" fill="#ea580c">② Decode：每步只处理一个新 Token</text>
+
+  <!-- Prefill tokens -->
+  <g>
+    <rect x="95" y="170" width="70" height="46" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="130" y="199" class="cell" text-anchor="middle">x₁</text>
+    <rect x="183" y="170" width="70" height="46" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="218" y="199" class="cell" text-anchor="middle">x₂</text>
+    <rect x="271" y="170" width="70" height="46" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="306" y="199" class="cell" text-anchor="middle">x₃</text>
+    <rect x="359" y="170" width="70" height="46" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="394" y="199" class="cell" text-anchor="middle">…</text>
+    <rect x="447" y="170" width="70" height="46" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="482" y="199" class="cell" text-anchor="middle">x<tspan baseline-shift="sub" font-size="75%">n-1</tspan></text>
+    <rect x="535" y="170" width="70" height="46" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+    <text x="570" y="199" class="cell" text-anchor="middle">x<tspan baseline-shift="sub" font-size="75%">n</tspan></text>
+  </g>
+
+  <rect x="95" y="260" width="545" height="96" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="367" y="290" class="node-title" text-anchor="middle">每一层：n 个位置并行算 Q、K、V</text>
+  <text x="367" y="316" class="node-sub" text-anchor="middle">QKᵀ 是 n × n 矩阵，因果掩码只保留 i ≤ t</text>
+  <text x="367" y="340" class="tiny" text-anchor="middle">矩阵乘矩阵（GEMM）：权重读一次被 n 个 Token 复用 → 计算密集</text>
+
+  <!-- Prefill KV block -->
+  <rect x="95" y="396" width="560" height="96" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="115" y="424" class="label" fill="#7c3aed">写入 KV Cache（每层一份）</text>
+  <text x="120" y="455" class="cell">K</text>
+  <text x="120" y="482" class="cell">V</text>
+  <g stroke="#a78bfa" stroke-width="1.6" fill="#f5f3ff">
+    <rect x="145" y="438" width="72" height="22" rx="5"/><rect x="225" y="438" width="72" height="22" rx="5"/><rect x="305" y="438" width="72" height="22" rx="5"/><rect x="385" y="438" width="72" height="22" rx="5"/><rect x="465" y="438" width="72" height="22" rx="5"/><rect x="545" y="438" width="72" height="22" rx="5"/>
+    <rect x="145" y="465" width="72" height="22" rx="5"/><rect x="225" y="465" width="72" height="22" rx="5"/><rect x="305" y="465" width="72" height="22" rx="5"/><rect x="385" y="465" width="72" height="22" rx="5"/><rect x="465" y="465" width="72" height="22" rx="5"/><rect x="545" y="465" width="72" height="22" rx="5"/>
+  </g>
+  <text x="440" y="424" class="tiny">1 … n 个位置一次写满</text>
+
+  <rect x="95" y="530" width="545" height="84" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="367" y="562" class="node-title" text-anchor="middle">输出第 1 个 Token x<tspan baseline-shift="sub" font-size="75%">n+1</tspan></text>
+  <text x="367" y="590" class="node-sub" text-anchor="middle">TTFT ≈ 排队 + Prefill</text>
+
+  <!-- Decode new token -->
+  <rect x="940" y="156" width="240" height="66" rx="14" fill="#ffffff" stroke="#fb923c" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="1060" y="184" class="node-title" text-anchor="middle">新 Token x<tspan baseline-shift="sub" font-size="75%">t</tspan></text>
+  <text x="1060" y="208" class="tiny" text-anchor="middle">只投影出 q<tspan baseline-shift="sub" font-size="75%">t</tspan>、k<tspan baseline-shift="sub" font-size="75%">t</tspan>、v<tspan baseline-shift="sub" font-size="75%">t</tspan></text>
+
+  <rect x="800" y="260" width="545" height="96" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="1072" y="290" class="node-title" text-anchor="middle">q<tspan baseline-shift="sub" font-size="75%">t</tspan> 与全部历史 kᵢ 点积，再加权求和 vᵢ</text>
+  <text x="1072" y="316" class="node-sub" text-anchor="middle">历史 qᵢ 不再使用，因此不缓存 Q</text>
+  <text x="1072" y="340" class="tiny" text-anchor="middle">矩阵乘向量（GEMV）+ 读完整 KV → 访存密集</text>
+
+  <!-- Decode KV block -->
+  <rect x="787" y="396" width="560" height="96" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="812" y="455" class="cell">K</text>
+  <text x="812" y="482" class="cell">V</text>
+  <g stroke="#a78bfa" stroke-width="1.6" fill="#f5f3ff">
+    <rect x="837" y="438" width="72" height="22" rx="5"/><rect x="917" y="438" width="72" height="22" rx="5"/><rect x="997" y="438" width="72" height="22" rx="5"/><rect x="1077" y="438" width="72" height="22" rx="5"/>
+    <rect x="837" y="465" width="72" height="22" rx="5"/><rect x="917" y="465" width="72" height="22" rx="5"/><rect x="997" y="465" width="72" height="22" rx="5"/><rect x="1077" y="465" width="72" height="22" rx="5"/>
+  </g>
+  <g stroke="#16a34a" stroke-width="2" fill="#dcfce7">
+    <rect x="1165" y="438" width="72" height="22" rx="5"/>
+    <rect x="1165" y="465" width="72" height="22" rx="5"/>
+  </g>
+  <text x="1201" y="454" class="cell" text-anchor="middle">k<tspan baseline-shift="sub" font-size="75%">t</tspan></text>
+  <text x="1201" y="481" class="cell" text-anchor="middle">v<tspan baseline-shift="sub" font-size="75%">t</tspan></text>
+  <text x="1257" y="468" class="tiny">长度 +1</text>
+
+  <rect x="800" y="530" width="540" height="84" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2.2" filter="url(#rough)"/>
+  <text x="1070" y="562" class="node-title" text-anchor="middle">输出 x<tspan baseline-shift="sub" font-size="75%">t+1</tspan></text>
+  <text x="1070" y="590" class="node-sub" text-anchor="middle">TPOT：每步读全部权重 + 全部 KV</text>
+
+  <!-- Memory ledger -->
+  <rect x="45" y="672" width="1350" height="206" rx="22" fill="#fbf9ff" stroke="#a78bfa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+  <text x="70" y="708" class="region-title" fill="#7c3aed">③ 显存账本（BF16，b = 2 字节）</text>
+  <text x="720" y="752" class="formula" text-anchor="middle">每 Token KV = 2 × L × H_kv × d_h × b</text>
+  <text x="95" y="796" class="code">Llama 3.1 8B ：2 × 32 × 8 × 128 × 2 B = 128 KiB / Token  →  128K 上下文约 16 GiB</text>
+  <text x="95" y="826" class="code">Llama 3.1 70B：2 × 80 × 8 × 128 × 2 B = 320 KiB / Token  →  128K 上下文约 40 GiB</text>
+  <text x="95" y="856" class="code">同尺寸若为 MHA（64 个 KV 头）：2.5 MiB / Token  →  128K 上下文约 320 GiB</text>
+</svg>

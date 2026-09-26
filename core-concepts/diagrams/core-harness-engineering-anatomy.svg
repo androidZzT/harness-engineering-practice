@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900">
+<defs>
+    <pattern id="paper" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#eef2f7" stroke-width="1"/>
+    </pattern>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#ea580c"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#16a34a"/></marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#7c3aed"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #536174; }
+      .region-title { font-size: 19px; font-weight: 700; }
+      .node-title { font-size: 17px; font-weight: 650; }
+      .node-sub { font-size: 13px; fill: #536174; }
+      .tiny { font-size: 13px; fill: #64748b; }
+      .chip { font-size: 13px; font-weight: 600; }
+      .line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+<rect width="1440" height="900" fill="#ffffff"/>
+<rect width="1440" height="900" fill="url(#paper)"/>
+<text x="55" y="55" class="title">Agent = Model + Harness：Harness 的组成</text>
+<text x="55" y="83" class="subtitle">模型负责判断下一步，其余让它可靠工作的工程都属于 Harness；方框中的数字为本系列篇号</text>
+<rect x="45" y="115" width="1350" height="175" rx="24" fill="#fbf9ff" stroke="#a78bfa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+<text x="70" y="149" class="region-title" fill="#7c3aed">① 模型侧能力：由 Harness 决定何时启用、如何装配</text>
+<rect x="45" y="315" width="1350" height="265" rx="24" fill="#f8fbff" stroke="#60a5fa" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+<text x="70" y="349" class="region-title" fill="#2563eb">② Agent Loop（03）：每轮重建请求 → 采样 → 执行 → 回填</text>
+<rect x="45" y="605" width="1350" height="215" rx="24" fill="#fffaf2" stroke="#fb923c" stroke-width="2.2" stroke-dasharray="9 6" filter="url(#rough)"/>
+<text x="70" y="639" class="region-title" fill="#ea580c">③ 横切能力与编排：贯穿每一轮</text>
+<path d="M1270 480 V532 H390 V484" class="line" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+<path d="M265 430 H293" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+<path d="M485 430 H513" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+<path d="M705 430 H733" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+<path d="M925 430 H953" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+<path d="M1145 430 H1173" class="line" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+<text x="830" y="558" class="tiny" text-anchor="middle">tool result 回填，进入下一轮；无工具调用且满足停止条件时结束</text>
+<rect x="75" y="170" width="230" height="95" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+<text x="190.0" y="210" class="node-title" text-anchor="middle">Prompt · 12</text>
+<text x="190.0" y="238" class="node-sub" text-anchor="middle">指令、工具描述、示例</text>
+<rect x="339" y="170" width="230" height="95" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+<text x="454.0" y="210" class="node-title" text-anchor="middle">Reasoning · 05</text>
+<text x="454.0" y="238" class="node-sub" text-anchor="middle">thinking 预算与 effort</text>
+<rect x="603" y="170" width="230" height="95" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+<text x="718.0" y="210" class="node-title" text-anchor="middle">Planning · 06</text>
+<text x="718.0" y="238" class="node-sub" text-anchor="middle">todo 与计划模式</text>
+<rect x="867" y="170" width="230" height="95" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+<text x="982.0" y="210" class="node-title" text-anchor="middle">Skills · 07</text>
+<text x="982.0" y="238" class="node-sub" text-anchor="middle">按需加载的流程知识</text>
+<rect x="1131" y="170" width="230" height="95" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+<text x="1246.0" y="210" class="node-title" text-anchor="middle">Memory · 09</text>
+<text x="1246.0" y="238" class="node-sub" text-anchor="middle">跨会话事实与偏好</text>
+<rect x="75" y="380" width="190" height="100" rx="16" fill="#ffffff" stroke="#fbbf24" stroke-width="2"/>
+<text x="170.0" y="420" class="node-title" text-anchor="middle">用户与人工介入</text>
+<text x="170.0" y="448" class="node-sub" text-anchor="middle">输入、审批、steer</text>
+<rect x="295" y="380" width="190" height="100" rx="16" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
+<text x="390.0" y="420" class="node-title" text-anchor="middle">上下文装配 · 13</text>
+<text x="390.0" y="448" class="node-sub" text-anchor="middle">选择、排序、压缩</text>
+<rect x="515" y="380" width="190" height="100" rx="16" fill="#ffffff" stroke="#172033" stroke-width="2.4"/>
+<text x="610.0" y="420" class="node-title" text-anchor="middle">模型 · 01 / 02</text>
+<text x="610.0" y="448" class="node-sub" text-anchor="middle">LLM API 与 KV Cache</text>
+<rect x="735" y="380" width="190" height="100" rx="16" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+<text x="830.0" y="420" class="node-title" text-anchor="middle">工具调用 · 04</text>
+<text x="830.0" y="448" class="node-sub" text-anchor="middle">schema，MCP · 08</text>
+<rect x="955" y="380" width="190" height="100" rx="16" fill="#ffffff" stroke="#f472b6" stroke-width="2"/>
+<text x="1050.0" y="420" class="node-title" text-anchor="middle">权限与沙箱</text>
+<text x="1050.0" y="448" class="node-sub" text-anchor="middle">审批策略、OS 隔离</text>
+<rect x="1175" y="380" width="190" height="100" rx="16" fill="#ffffff" stroke="#34d399" stroke-width="2"/>
+<text x="1270.0" y="420" class="node-title" text-anchor="middle">环境</text>
+<text x="1270.0" y="448" class="node-sub" text-anchor="middle">文件、Shell、浏览器</text>
+<rect x="75" y="670" width="190" height="100" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+<text x="170.0" y="710" class="node-title" text-anchor="middle">状态持久化</text>
+<text x="170.0" y="738" class="node-sub" text-anchor="middle">会话日志、检查点</text>
+<rect x="295" y="670" width="190" height="100" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+<text x="390.0" y="710" class="node-title" text-anchor="middle">Hooks / 中间件</text>
+<text x="390.0" y="738" class="node-sub" text-anchor="middle">生命周期确定性逻辑</text>
+<rect x="515" y="670" width="190" height="100" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+<text x="610.0" y="710" class="node-title" text-anchor="middle">可观测性</text>
+<text x="610.0" y="738" class="node-sub" text-anchor="middle">trace、日志、指标</text>
+<rect x="735" y="670" width="190" height="100" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+<text x="830.0" y="710" class="node-title" text-anchor="middle">评测</text>
+<text x="830.0" y="738" class="node-sub" text-anchor="middle">能力集、回归集</text>
+<rect x="955" y="670" width="190" height="100" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+<text x="1050.0" y="710" class="node-title" text-anchor="middle">成本与限流</text>
+<text x="1050.0" y="738" class="node-sub" text-anchor="middle">预算、轮次、退避</text>
+<rect x="1175" y="670" width="190" height="100" rx="16" fill="#ffffff" stroke="#fb923c" stroke-width="2"/>
+<text x="1270.0" y="710" class="node-title" text-anchor="middle">子 Agent · 10</text>
+<text x="1270.0" y="738" class="node-sub" text-anchor="middle">多 Agent · 11</text>
+<text x="55" y="862" class="tiny">蓝色箭头：单轮主路径</text><text x="260" y="862" class="tiny">绿色回路：工具结果回填到下一轮</text><text x="530" y="862" class="tiny">区域位置表示职责分层，不表示调用顺序</text>
+</svg>
