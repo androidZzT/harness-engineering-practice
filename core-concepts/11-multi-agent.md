@@ -10,11 +10,9 @@
 
 多 Agent 系统（Multi-Agent System，MAS）是由两个及以上 LLM Agent 组成、各自持有独立上下文和角色、通过编排逻辑协作完成同一目标的系统。编排逻辑可以由某个 LLM 决定（让模型决定下一步交给谁），也可以由代码决定（预先写好阶段、路由和并行）。
 
-它与 [Subagent](10-subagent.md) 的关系是：Subagent 讲一次委派的机制，即主 Agent 如何通过工具调用创建隔离的子 Agent 并收回结果；本篇讲多个 Agent 的系统级结构，即谁拥有控制权、状态放在哪里、系统何时结束。orchestrator-worker 是 Subagent 机制最直接的系统形态，但 handoff、pipeline、blackboard 等拓扑并不依赖“主 Agent 调子 Agent”这一结构。
+[Subagent](10-subagent.md) 一篇讲一次委派的机制，即主 Agent 如何通过工具调用创建隔离的子 Agent 并收回结果；本篇讲多个 Agent 的系统级结构，即谁拥有控制权、状态放在哪里、系统何时结束。orchestrator-worker 是 Subagent 机制最直接的系统形态，但 handoff、pipeline、blackboard 等拓扑并不依赖“主 Agent 调子 Agent”这一结构。
 
-判断一个系统是否需要多 Agent，要先看支持方和反对方各自的证据。
-
-### 支持方的数据：并行广度换取效果
+### 支持方的数据：并行调研的效果与 Token 开销
 
 Anthropic 在《How we built our multi-agent research system》中复盘了其 Research 功能。系统采用 orchestrator-worker 结构：LeadResearcher 分析问题、制定策略并写入 Memory，并行派出子 Agent 搜索和评估信息，最后由 CitationAgent 核对引用。文中的关键数据：
 
@@ -23,14 +21,14 @@ Anthropic 在《How we built our multi-agent research system》中复盘了其 R
 - Agent 约为普通对话 4 倍 Token，多 Agent 约 15 倍。
 - 主 Agent 同时派出 3–5 个子 Agent、子 Agent 并行调用 3 个以上工具，复杂问题的研究时间最多缩短 90%。
 
-文章同时写明了不适合的场景：需要所有 Agent 共享同一上下文的领域、Agent 之间依赖很多的任务，以及多数编码任务。由此可以推出多 Agent 起作用的机制：单个窗口装不下的信息被拆到多个窗口并行处理，多 Agent 本质上是扩大有效 Token 预算的方式，收益必须覆盖十几倍的成本。
+文章同时列出了不适合的场景，包括需要所有 Agent 共享同一上下文的领域、Agent 之间依赖很多的任务，以及多数编码任务。由此可以推出多 Agent 起作用的机制。单个窗口装不下的信息被拆到多个窗口并行处理，有效 Token 预算随之扩大，这部分收益要覆盖十几倍的成本。
 
 ### 反对方的论证：上下文共享与决策冲突
 
 Cognition 在《Don't Build Multi-Agents》中给出了两条原则：
 
-1. **共享上下文，而且共享完整的 Agent 轨迹，不只是单条消息。**
-2. **行动隐含决策，互相冲突的决策会带来坏结果。**
+1. 共享上下文，而且共享完整的 Agent 轨迹，不只是单条消息。
+2. 行动隐含决策，互相冲突的决策会带来坏结果。
 
 文中的例子是把“做一个 Flappy Bird 克隆”拆成背景和小鸟两个子任务：子 Agent 1 误解了子任务，做成了超级马里奥风格的背景；子 Agent 2 做出的小鸟既不像游戏素材，动作也完全不像 Flappy Bird，汇总者只能拼合两份误解，这对应第一条原则。即使把完整任务上下文交给每个子 Agent，两者看不到对方在做什么，仍可能做出视觉风格完全不同的小鸟和背景，这对应第二条原则。Cognition 当时的建议是单线程线性 Agent，长任务靠额外的压缩模型管理上下文。
 
@@ -65,11 +63,11 @@ Cognition 在后续文章《Multi-Agents: What's Actually Working》中收窄了
 
 ### LLM 编排与代码编排
 
-OpenAI Agents SDK 文档把编排分成两类：由 LLM 编排，让模型规划并决定步骤；由代码编排，让速度、成本和效果更可预测，常见写法是结构化输出路由、Agent 链式串联、评估器循环和 `asyncio.gather` 并行。推断：实际系统通常用代码固定拓扑（阶段、并发上限、终止条件），把拓扑内部的决策交给模型（怎么拆、派给谁、结果是否合格）。Claude Agent SDK 也是这种分层：少量委派用子 Agent，协调几十到几百个 Agent 时用 Workflow 工具把编排移到脚本里，在对话上下文之外执行。
+OpenAI Agents SDK 文档把编排分成两类。由 LLM 编排时，模型规划并决定步骤；由代码编排时，速度、成本和效果更可预测，常见写法是结构化输出路由、Agent 链式串联、评估器循环和 `asyncio.gather` 并行。推断：实际系统通常用代码固定拓扑（阶段、并发上限、终止条件），把拓扑内部的决策交给模型（怎么拆、派给谁、结果是否合格）。Claude Agent SDK 也是这种分层：少量委派用子 Agent，协调几十到几百个 Agent 时用 Workflow 工具把编排移到脚本里，在对话上下文之外执行。
 
 ### Handoff：控制权转交
 
-OpenAI Agents SDK 中，Handoff 对模型呈现为名为 `transfer_to_<agent_name>` 的工具；调用后新 Agent 接管对话，默认看到之前的完整历史。`input_filter` 可以裁剪接手方看到的历史，`input_type` 让模型转交时附带结构化参数，`on_handoff` 回调可在转交时预取数据。Handoff 适合“谁来回答”本身就是主要问题的场景，如客服分诊。它的风险是没有 Agent 对全局负责，A 转给 B、B 又转回 A；控制手段是用 `is_enabled` 限制可转交目标，并在代码层计数，超限转人工。
+OpenAI Agents SDK 中，Handoff 对模型呈现为名为 `transfer_to_<agent_name>` 的工具；调用后新 Agent 接管对话，默认看到之前的完整历史。`input_filter` 可以裁剪接手方看到的历史，`input_type` 让模型转交时附带结构化参数，`on_handoff` 回调可在转交时预取数据。Handoff 适合“谁来回答”本身就是主要问题的场景，如客服分诊。它的风险在于没有 Agent 对全局负责，可能出现 A 转给 B、B 又转回 A。可以用 `is_enabled` 限制可转交目标，并在代码层计数，超限转人工。
 
 层级结构则是把 orchestrator-worker 叠成多层，每层只看下一层的汇总，每多一层就多一次有损压缩，下文 AgentTeams 部分展开；Claude Code Agent Teams 不支持嵌套团队。
 
@@ -89,9 +87,9 @@ Agent 之间的信息交换有三种载体：
 
 Anthropic 的经验是让子 Agent 把输出直接写入文件系统，再把轻量引用交给协调者，以减少“传话游戏”带来的信息损失和 Token 开销。AgentTeams 把两种通道分开：Matrix 房间里的 @提及只承载控制信号（“新任务 task-xxx，去拉取 spec.md”），任务说明和结果以文件形式放在共享存储的 `shared/tasks/{task-id}/` 下。
 
-共享存储一旦有多个写入者，就需要并发控制：Claude Code Agent Teams 用文件锁防止多个队员同时认领同一任务，任务有 pending、in progress、completed 三种状态并可声明依赖；AgentTeams 用默认 15 分钟过期的 `.processing` 锁文件保护共享任务目录，防止持锁者崩溃后永久阻塞；Multica 在数据库层用 `FOR UPDATE SKIP LOCKED` 认领任务，下文展开。
+共享存储一旦有多个写入者，就需要并发控制。Claude Code Agent Teams 用文件锁防止多个队员同时认领同一任务，任务有 pending、in progress、completed 三种状态并可声明依赖；AgentTeams 用默认 15 分钟过期的 `.processing` 锁文件保护共享任务目录，防止持锁者崩溃后永久阻塞；Multica 在数据库层用 `FOR UPDATE SKIP LOCKED` 认领任务，下文展开。
 
-另一条经验来自 Cognition 的修正：共享状态的“读”可以并发，对同一产物的“写”最好只有一个执行者。Claude Code 文档给出的建议也一致：两个队员编辑同一文件会互相覆盖，应让每个队员负责不同的文件集合。
+Cognition 的修正也落在这里，共享状态可以并发读，同一产物的写最好只有一个执行者。Claude Code 文档的建议相同，两个队员编辑同一文件会互相覆盖，应让每个队员负责不同的文件集合。
 
 ## 协议分工：MCP 连接工具，A2A 连接 Agent
 
@@ -131,13 +129,13 @@ A2A 当前发布的规范版本为 1.0.0，由 Google 发起，2025 年进入 Li
 }
 ```
 
-A2A 解决的是互操作，不解决编排。它规定了 Agent 之间如何提交任务、查询状态和交付产物，谁来拆解任务、何时终止、如何校验结果，仍由上层系统设计。
+A2A 规定了 Agent 之间如何提交任务、查询状态和交付产物，处理的是互操作。谁来拆解任务、何时终止、如何校验结果，仍由上层系统设计。
 
 ## 共享黑板：Multica 如何用任务看板协调 Agent
 
 ![黑板式协调：Multica Squad 的一次派发与回收](diagrams/core-multi-agent-blackboard.svg)
 
-Multica 是一个把多个 Coding Agent（Claude Code、Codex 等）接入 Issue 看板的协作平台。它的多 Agent 协调完全建立在共享状态上：Agent 之间不直接调用，评论里的提及链接和 Issue 分配被 Server 转成任务队列中的新任务，本地 Daemon 认领任务后启动对应的 Agent CLI。图中 1–10 步是一次 Squad（由一个 Leader 和若干成员组成的小组）派发与回收的完整回路。
+Multica 是一个把多个 Coding Agent（Claude Code、Codex 等）接入 Issue 看板的协作平台。它的多 Agent 协调完全建立在共享状态上。Agent 之间不直接调用，评论里的提及链接和 Issue 分配被 Server 转成任务队列中的新任务，本地 Daemon 认领任务后启动对应的 Agent CLI。图中 1–10 步是一次 Squad（由一个 Leader 和若干成员组成的小组）派发与回收的完整回路。
 
 ### 认领：数据库行锁保证不重复执行
 
@@ -200,7 +198,7 @@ for this task ...** Your job is to
 
 ### 路由守卫：自触发抑制写在代码里
 
-评论触发任务的机制天然有环路风险：Leader 的评论触发成员，成员的评论触发 Leader，Leader 的评论还可能触发 Leader 自己。Multica 在 Server 层放了三道守卫：`shouldSuppressSquadLeaderSelfTrigger` 阻止 Leader 自己的评论重新唤醒自己；Agent 在它正在运行的同一 Issue 上写入时，不会把自己重新入队；Agent 写的评论不参与面向人类成员的通用路由，只保留一条窄路径，即成员在 Squad 负责的 Issue 上回写结果时唤醒 Leader，让“Leader → 成员 → Leader”的回路闭合。
+评论触发任务的机制天然有环路风险：Leader 的评论触发成员，成员的评论触发 Leader，Leader 的评论还可能触发 Leader 自己。Multica 在 Server 层放了三道守卫。`shouldSuppressSquadLeaderSelfTrigger` 阻止 Leader 自己的评论重新唤醒自己；Agent 在它正在运行的同一 Issue 上写入时，不会把自己重新入队；Agent 写的评论不参与面向人类成员的通用路由，只保留一条窄路径，即成员在 Squad 负责的 Issue 上回写结果时唤醒 Leader，让“Leader → 成员 → Leader”的回路闭合。
 
 ### 汇合：阶段屏障由服务端判断
 
@@ -218,13 +216,13 @@ for this task ...** Your job is to
 //     unfinished stage is terminal (stageBarrierClosed). ...
 ```
 
-这是 pipeline 与 blackboard 的结合：子 Issue 按 `stage` 分组，同一阶段内并行，阶段之间串行；屏障检测是确定性代码，“是否推进下一阶段”仍由被唤醒的 Agent 决定。它也是一个典型的工程教训：把“何时通知谁”写进提示词，会产生自提及循环和规划者之间的来回拉扯；把它挪到代码里，环路就消失了。
+这是 pipeline 与 blackboard 的结合。子 Issue 按 `stage` 分组，同一阶段内并行，阶段之间串行；屏障检测是确定性代码，“是否推进下一阶段”仍由被唤醒的 Agent 决定。“何时通知谁”写在提示词里时，出现了自提及循环和规划者之间的来回拉扯；挪到代码里之后，这类环路就没有了。
 
 失败重试同样由代码约束。只有 `runtime_offline`、`runtime_recovery`、`timeout`、`codex_semantic_inactivity` 这类基础设施原因会自动重试，任务的 `max_attempts` 默认为 2；达到迭代上限、API 请求非法等失败会被暴露给用户，不会被重试掩盖。
 
 ## 层级监督：AgentTeams 的通信拓扑与 DAG 调度
 
-AgentTeams 是采用 Manager-Workers 架构的多 Agent 运行平台：Kubernetes Operator 管理各 Agent 容器，Matrix 即时通信服务器承载人与 Agent、Agent 与 Agent 的消息，MinIO 存放共享文件，AI 网关持有真实的模型凭证。它的层级不只是提示词约定，而是由控制器在生成每个 Worker 的通道配置时写死的访问控制：
+AgentTeams 是采用 Manager-Workers 架构的多 Agent 运行平台：Kubernetes Operator 管理各 Agent 容器，Matrix 即时通信服务器承载人与 Agent、Agent 与 Agent 的消息，MinIO 存放共享文件，AI 网关持有真实的模型凭证。它的层级除了提示词约定，还由控制器在生成每个 Worker 的通道配置时写成访问控制：
 
 ```go
 // hiclaw-controller/internal/agentconfig/generator.go
@@ -258,22 +256,22 @@ Team Leader 的项目计划可以写成 DAG，由 `ready_nodes` 计算可派发�
 | Agent 间失配 | 对话重置（2.2%）、未请求澄清（6.8%）、任务偏离（7.4%）、信息隐瞒（0.85%）、忽略其他 Agent 输入（1.9%）、推理与行动不一致（13.2%） | 共享状态作为事实来源；允许返回“阻塞 + 问题”；汇总时逐条核对来源 |
 | 任务验证 | 过早终止（6.2%）、没有或不完整的验证（8.2%）、错误验证（9.1%） | 独立验证者；确定性检查；完成条件由代码判断 |
 
-这组数据的主要结论是：大量失败来自系统设计，而不是模型能力。步骤重复和不知道终止条件合计接近 28%，这两项都可以用代码层的计数器和终止条件直接压低。前面两个源码案例对应的也正是这两类：Multica 的自触发抑制针对重复触发，AgentTeams 的 `max_iterations` 和 DAG 就绪判断针对终止。
+按这组数据，大量失败来自系统设计，模型能力不是主要来源。步骤重复和不知道终止条件合计接近 28%，这两项都可以用代码层的计数器和终止条件直接压低。前面两个源码案例也对应这两类，Multica 的自触发抑制针对重复触发，AgentTeams 的 `max_iterations` 和 DAG 就绪判断针对终止。
 
 ## 终止、成本、评测与可观测性
 
-**终止条件要分层写进代码。** 多 Agent 比单 Agent 多一类终止问题：每个 Agent 都可能认为别人还没做完，也可能都以为别人会收尾。任务级完成条件由结构化状态判断（子任务全部终态、DAG 无未完成节点、验收通过）；拓扑级给转交次数、辩论轮数、循环迭代设上限，超限转人工或输出当前最佳结果；资源级设总 Token 预算、墙钟超时和并发上限；消息触发的系统还要有自触发与无效往来的守卫。Claude Code Agent Teams 的已知限制里同时出现了两种相反的失败：队员没把任务标记完成而阻塞依赖任务，Lead 在任务真正完成前就宣布结束。对应的控制是 `TaskCompleted`、`TeammateIdle` 等 Hook，在标记完成或即将空闲时运行检查脚本，不满足条件就拒绝并反馈。
+终止条件要分层写进代码。多 Agent 比单 Agent 多一类终止问题，每个 Agent 都可能认为别人还没做完，也可能都以为别人会收尾。任务级完成条件由结构化状态判断（子任务全部终态、DAG 无未完成节点、验收通过）；拓扑级给转交次数、辩论轮数、循环迭代设上限，超限转人工或输出当前最佳结果；资源级设总 Token 预算、墙钟超时和并发上限；消息触发的系统还要有自触发与无效往来的守卫。Claude Code Agent Teams 的已知限制里同时出现了两种相反的失败：队员没把任务标记完成而阻塞依赖任务，Lead 在任务真正完成前就宣布结束。对应的控制是 `TaskCompleted`、`TeammateIdle` 等 Hook，在标记完成或即将空闲时运行检查脚本，不满足条件就拒绝并反馈。
 
-**成本随活跃 Agent 数线性增长**，协调开销另计。常用手段有：
+成本随活跃 Agent 数线性增长，协调开销另计。常用手段有：
 
 - 按复杂度分配规模。Anthropic 在提示中写明：简单事实查找用 1 个 Agent、3–10 次工具调用；直接对比用 2–4 个子 Agent，各 10–15 次；复杂研究用 10 个以上职责清晰的子 Agent。Claude Code 建议多数工作流从 3–5 个队员起步，每人 5–6 个任务。
 - 模型分层，协调者用强模型、执行者用较便宜的模型。
 - 按需唤醒，只有被提及或被分配时才运行（AgentTeams 的 `requireMention`、Multica 的事件触发）。
 - 大块产物走文件，并设任务级总预算。
 
-**评测看最终状态，而不只看轨迹。** 同一问题两次运行可能派出不同数量的子 Agent、走不同路径，却都正确。Anthropic 从约 20 个代表真实使用的查询起步，用单次 LLM-as-a-Judge 调用按事实准确性、引用准确性、完整性、来源质量、工具效率打分；对会修改状态的任务评测最终状态；再用人工测试捕捉自动评测漏掉的偏差。MAST 的分类可以给失败轨迹打标签，统计分布后再决定改拓扑、改提示还是加验证。
+评测要看最终状态，不能只看轨迹。同一问题两次运行可能派出不同数量的子 Agent、走不同路径，却都正确。Anthropic 从约 20 个代表真实使用的查询起步，用单次 LLM-as-a-Judge 调用按事实准确性、引用准确性、完整性、来源质量、工具效率打分；对会修改状态的任务评测最终状态；再用人工测试捕捉自动评测漏掉的偏差。MAST 的分类可以给失败轨迹打标签，统计分布后再决定改拓扑、改提示还是加验证。
 
-**可观测性要能还原协作图。** 需要记录每个 Agent 被谁、因哪条消息或状态变化触发（trace ID 在父子间传递），每个 Agent 的 Token、工具调用和耗时，协调者的决策记录（Multica 要求 Leader 每次触发都写 `squad activity`），以及共享状态的迁移历史。Anthropic 还提到部署约束：多 Agent 是长时间运行的有状态进程，他们用彩虹部署让新旧版本并存、流量逐步切换，避免中途打断运行中的 Agent。
+可观测性要能还原协作图，需要记录每个 Agent 被谁、因哪条消息或状态变化触发（trace ID 在父子间传递），每个 Agent 的 Token、工具调用和耗时，协调者的决策记录（Multica 要求 Leader 每次触发都写 `squad activity`），以及共享状态的迁移历史。Anthropic 还提到部署约束：多 Agent 是长时间运行的有状态进程，他们用彩虹部署让新旧版本并存、流量逐步切换，避免中途打断运行中的 Agent。
 
 ## 架构推演
 
@@ -286,9 +284,8 @@ Team Leader 的项目计划可以写成 DAG，由 `ready_nodes` 计算可派发�
 - 同一仓库的并发修改如何避免冲突，任务认领与状态机如何在 Agent 崩溃或 Daemon 离线后安全恢复且不重复执行；
 - 返工上限、Agent 往来上限和需求级 Token 预算如何设定；
 - 跨团队或跨厂商的 Agent 是否通过 A2A 接入，哪些工具能力通过 MCP 接入；
-- 如何用 MAST 分类评估上线后的失败，用哪些指标判断多 Agent 比单 Agent 更值得。
-
-一个合格的方案应当能解释两件事：多花的 Token 换来了什么（更广的调研覆盖、更低的漏检率、更短的墙钟时间），以及每一个“写”动作的唯一责任者是谁。
+- 如何用 MAST 分类评估上线后的失败，用哪些指标判断多 Agent 比单 Agent 更值得；
+- 多花的 Token 带来了什么（更广的调研覆盖、更低的漏检率、更短的墙钟时间），每一个“写”动作的唯一责任者是谁。
 
 ## 复习结论
 
@@ -297,7 +294,7 @@ Team Leader 的项目计划可以写成 DAG，由 `ready_nodes` 计算可派发�
 - 六种拓扑按“谁决定下一步”和“状态放在哪里”区分。实际系统通常用代码固定拓扑，让模型在拓扑内部决策。
 - Agent 间信息走消息、共享存储或产物文件。大块内容走文件，共享状态需要锁和状态机，同一产物只有一个写入者。
 - MCP 连接 Agent 与工具，A2A 连接 Agent 与 Agent；A2A 规定发现、任务状态和传输，不负责编排。
-- Multica 与 AgentTeams 的共同经验是把认领、路由、通信白名单、阶段汇合等环路敏感的规则写进代码，而不是只写进提示词。
+- Multica 与 AgentTeams 的共同经验是把认领、路由、通信白名单、阶段汇合等环路敏感的规则写进代码，不只写进提示词。
 - MAST 显示大量失败来自系统设计。终止、成本、评测和可观测性都要在代码层落实。
 
 ## 参考

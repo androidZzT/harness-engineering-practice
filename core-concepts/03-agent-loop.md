@@ -8,7 +8,7 @@
 
 ## Agent 与 Workflow：下一步由谁决定
 
-Anthropic《Building effective agents》定义：Workflow 是“LLM 和工具通过预定义代码路径编排”的系统，Agent 是“LLM 动态决定自己的流程和工具使用”的系统。OpenAI《A practical guide to building agents》称 Agent 是“代表用户独立完成任务的系统”，并把不用 LLM 控制工作流执行的聊天机器人、单轮调用和分类器排除在外。两者的分界都不在于用没用工具，而在于**控制流归属**。
+Anthropic《Building effective agents》定义：Workflow 是“LLM 和工具通过预定义代码路径编排”的系统，Agent 是“LLM 动态决定自己的流程和工具使用”的系统。OpenAI《A practical guide to building agents》称 Agent 是“代表用户独立完成任务的系统”，并把不用 LLM 控制工作流执行的聊天机器人、单轮调用和分类器排除在外。两份定义都按控制流归属划分，即下一步由代码决定还是由模型决定，和是否使用工具无关。
 
 | 维度 | Workflow | Agent |
 | --- | --- | --- |
@@ -17,9 +17,9 @@ Anthropic《Building effective agents》定义：Workflow 是“LLM 和工具通
 | 可测试性 | 每条路径可单测 | 只能靠轨迹评测和约束兜底 |
 | 适用问题 | 步骤可枚举、要求一致性 | 开放问题、步骤无法预先写死 |
 
-Anthropic 把“增强型 LLM”（带检索、工具和记忆的模型调用）当作两类系统共用的积木，并建议只有在固定路径覆盖不了问题时才引入 Agent：把控制流交给模型，换来灵活性，付出可预测性。
+Anthropic 把“增强型 LLM”（带检索、工具和记忆的模型调用）当作两类系统共用的积木，并建议只有在固定路径覆盖不了问题时才引入 Agent。控制流交给模型后，系统更灵活，可预测性随之下降。
 
-Agent Loop 是承载这种控制流的运行时结构：反复“请求模型 → 执行模型选定的动作 → 把结果交还模型”。它不是模型能力，也不负责任务分解或多 Agent 协作，那些属于 [Planning](06-planning.md) 和 [Multi-Agent](11-multi-agent.md) 的范围。
+Agent Loop 是承载这种控制流的运行时结构，反复执行“请求模型 → 执行模型选定的动作 → 把结果交还模型”，本身不提供模型能力。任务分解和多 Agent 协作分别属于 [Planning](06-planning.md) 和 [Multi-Agent](11-multi-agent.md) 的范围。
 
 ## ReAct：思考、行动、观察交替出现
 
@@ -39,7 +39,7 @@ Observation 1: src/config/loader.py 第 42 行
 | Action | `tool_use` 块（Anthropic）/ `function_call` 项（OpenAI） |
 | Observation | Harness 回填的 `tool_result` 块 / `function_call_output` 项 |
 
-协议细节见 [Tool Use](04-tool-use.md)，推理块见 [Reasoning](05-reasoning.md)。ReAct 的分工保留了下来：**模型负责想和选，Harness 负责做和记**。
+协议细节见 [Tool Use](04-tool-use.md)，推理块见 [Reasoning](05-reasoning.md)。ReAct 的分工也保留了下来，模型推理并选择动作，Harness 执行动作并记录观察结果。
 
 ## 循环的最小实现与状态
 
@@ -68,7 +68,7 @@ for turn in range(MAX_TURNS):
     messages.append({"role": "user", "content": results})
 ```
 
-骨架已经完整：消息历史是唯一的状态载体，每轮是一次完整请求，`stop_reason` 决定是否继续，工具结果按 `tool_use_id` 配对回填。模型“记得”前几轮，是因为每轮都重发了历史（见 [LLM API](01-llm-api.md)）。
+这段骨架已经包含循环的全部要素。消息历史是唯一的状态载体，每轮是一次完整请求，`stop_reason` 决定是否继续，工具结果按 `tool_use_id` 配对回填。模型“记得”前几轮，是因为每轮都重发了历史（见 [LLM API](01-llm-api.md)）。
 
 生产实现补齐流式、并发、队列、预算、取消和持久化后，状态扩展为：
 
@@ -80,11 +80,11 @@ for turn in range(MAX_TURNS):
 | 待注入队列 | steering 消息、follow-up 消息 | 运行期间 |
 | 取消句柄 | AbortSignal / CancellationToken | 一次运行 |
 
-“turn”的口径各家不同：本文把一次模型请求加随后的工具执行称为一轮；Codex 把用户一次提交引发的整段执行称为 turn，其中每次采样称为 sampling request。
+“turn”的口径各家不同。本文把一次模型请求加随后的工具执行称为一轮；Codex 把用户一次提交引发的整段执行称为 turn，其中每次采样称为 sampling request。
 
 ### 停止条件
 
-步数在运行时才确定，停止条件必须显式设计。OpenAI 的指南列出的常见出口是：特定工具调用、特定结构化输出、错误、最大轮数；其 Agents SDK 在调用最终输出工具或模型返回不含工具调用的回复时结束 `Runner.run()`。
+步数在运行时才确定，停止条件必须显式设计。OpenAI 的指南列出的常见出口有特定工具调用、特定结构化输出、错误和最大轮数；其 Agents SDK 在调用最终输出工具或模型返回不含工具调用的回复时结束 `Runner.run()`。
 
 | 停止条件 | 触发方 | 典型实现 |
 | --- | --- | --- |
@@ -95,7 +95,7 @@ for turn in range(MAX_TURNS):
 | 不可恢复错误 | API / Harness | 上下文超限、鉴权失败、重试耗尽 |
 | 外部钩子 | Harness 扩展 | Codex 的 stop hook 可以阻止结束并追加提示 |
 
-没有工具调用不等于完成：`max_tokens` 是输出被截断；Anthropic 的 `pause_turn` 表示服务端工具循环达到迭代上限（默认 10 次），要把响应原样发回才能继续。停止判断必须看 `stop_reason` 的具体值。
+没有工具调用时任务也可能没有完成。`max_tokens` 表示输出被截断；Anthropic 的 `pause_turn` 表示服务端工具循环达到迭代上限（默认 10 次），要把响应原样发回才能继续。停止判断必须看 `stop_reason` 的具体值。
 
 预算耗尽时直接退出会丢掉已有进展。Hermes 到达上限后追加一条 user 消息，要求模型“不再调用工具，总结已找到和已完成的内容”，用最后一次请求收尾。
 
@@ -200,7 +200,7 @@ while (api_call_count < agent.max_iterations
 
 ## 错误回填与自我纠正
 
-原则是：**模型能修正的错误回填给模型，修正不了的由 Harness 处理**。前者变成一条 `is_error` 工具结果，后者在循环外重试、降级或终止。
+模型能修正的错误回填给模型，修正不了的由 Harness 处理。前者变成一条 `is_error` 工具结果，后者在循环外重试、降级或终止。
 
 | 错误类型 | 处理方 | 做法 |
 | --- | --- | --- |
@@ -213,7 +213,7 @@ while (api_call_count < agent.max_iterations
 
 Anthropic 文档说明，工具请求无效或缺参数时 Claude 会修正重试 2 到 3 次，并建议错误信息写明错在哪、下一步怎么做（如 “Rate limit exceeded. Retry after 60 seconds.”），不要只写 “failed”。
 
-Pi 在执行前用 `validateToolArguments()` 校验参数，错误信息列出每个字段的路径、原因和收到的原始参数。输出因 token 上限截断时，它不执行任何工具，统一回填“参数可能被截断，请以完整参数重新调用”：流式参数用的是尽力修复的 JSON 解析，截断后的参数可能恰好通过校验却缺了内容。
+Pi 在执行前用 `validateToolArguments()` 校验参数，错误信息列出每个字段的路径、原因和收到的原始参数。输出因 token 上限截断时，它不执行任何工具，统一回填“参数可能被截断，请以完整参数重新调用”。原因在于流式参数用的是尽力修复的 JSON 解析，截断后的参数可能恰好通过校验却缺了内容。
 
 Hermes 对编造的工具名先做模糊修复，修不了就回填“工具不存在，可用工具有……”，同批次合法调用回填“已跳过，请重试”，保证每个 `tool_call_id` 都有结果；无效工具名连续 3 次后以 partial 状态结束。工具名为空时只回简短提示，不附目录，以免给模仿文件内工具调用文本的模型更多可抄的名字。
 
@@ -231,7 +231,7 @@ Pi 的 `Agent` 维护两个 `PendingMessageQueue`，`steer()` 与 `followUp()` �
 
 Codex 的 `steer_input()` 要求存在活跃 turn，可校验调用方给出的期望 turn id 以免输入落进错误的任务，并拒绝向压缩和 review 类 turn 注入。turn 开始和自动压缩之后会推迟一次排空，让初始输入和待续接的调用先被采样。
 
-Hermes 面对的是 Chat Completions 的角色交替约束，工具结果后紧跟 user 消息在部分服务上会被拒绝。它把 steer 文本以标记附加到**最后一条 tool 消息末尾**；还没有 tool 消息时就继续排队。这是用注入及时性换协议兼容性。
+Hermes 面对的是 Chat Completions 的角色交替约束，工具结果后紧跟 user 消息在部分服务上会被拒绝。它把 steer 文本以标记附加到最后一条 tool 消息末尾；还没有 tool 消息时就继续排队。这样满足了协议约束，但 steer 要等到出现 tool 消息才能送达模型。
 
 ### 中断的语义
 
@@ -241,7 +241,7 @@ Hermes 面对的是 Chat Completions 的角色交替约束，工具结果后紧�
 
 ### 流式输出与取消
 
-Pi 在流开始时把 partial 消息放进上下文，每个 delta 替换它，结束时用完整消息覆盖；取消时这条消息以 `aborted` 结尾，循环随即退出。Codex 则利用流式提前启动工具。两者共同的边界是：工具参数是增量到达的 JSON 片段，参数块结束前、或输出被截断时，都不能执行工具。
+Pi 在流开始时把 partial 消息放进上下文，每个 delta 替换它，结束时用完整消息覆盖；取消时这条消息以 `aborted` 结尾，循环随即退出。Codex 则利用流式提前启动工具。两者受同一个限制约束。工具参数以 JSON 片段增量到达，参数块结束前或输出被截断时，都不能执行工具。
 
 ## 长任务的持久化与恢复
 
@@ -257,10 +257,10 @@ Pi 的分支不改历史，只移动叶子指针再追加。
 
 恢复的难点是日志尾部可能是“半截”状态：
 
-- **孤立的工具调用**：工具执行中崩溃，调用没有结果，直接重放违反协议。恢复时补一条“执行状态未知”的错误结果。
-- **协议非法的尾部**：Hermes 的 `_drop_trailing_empty_response_scaffolding()` 删除失败重试留下的占位消息，回退到最后一个完整的 assistant/tool 对；否则下一条 user 进来形成 `tool, user, user`，多数服务会静默返回空内容，触发空响应重试死循环。
-- **副作用是否已发生**：日志记录模型看到的内容，不是外部世界的状态。`git push` 或数据库迁移是否完成，只能查询外部系统，幂等设计见 [Tool Use](04-tool-use.md)。
-- **压缩后的恢复**：按压缩点重建活动视图，而不是重放全部原文，见 [Context Engineering](13-context-engineering.md)。
+- 孤立的工具调用：工具执行中崩溃，调用没有结果，直接重放违反协议。恢复时补一条“执行状态未知”的错误结果。
+- 协议非法的尾部：Hermes 的 `_drop_trailing_empty_response_scaffolding()` 删除失败重试留下的占位消息，回退到最后一个完整的 assistant/tool 对；否则下一条 user 进来形成 `tool, user, user`，多数服务会静默返回空内容，触发空响应重试死循环。
+- 副作用是否已发生：日志只记录模型看到的内容，不反映外部世界的状态。`git push` 或数据库迁移是否完成，只能查询外部系统，幂等设计见 [Tool Use](04-tool-use.md)。
+- 压缩后的恢复：按压缩点重建活动视图，不重放全部原文，见 [Context Engineering](13-context-engineering.md)。
 
 推断：有外部副作用的工具至少要在执行前后各写一条记录（意图与结果），恢复时才知道哪些调用需要核实。
 
@@ -295,7 +295,7 @@ Pi 的分支不改历史，只移动叶子指针再追加。
 - 作者点“停止”时，测试进程、写了一半的文件和历史记录如何处理；
 - 如何用轨迹数据区分“修正”与“打转”。
 
-完整方案应分三层：模型决定下一步，循环负责推进与停止，Git、CI、审批等外部状态作为事实来源。循环状态能从日志重建，副作用能从外部系统确认，任何一层都不能只存在于进程内存。
+方案需要说明三层分工。模型决定下一步，循环负责推进与停止，Git、CI、审批等外部状态作为事实来源。循环状态要能从日志重建，副作用要能从外部系统确认，这些状态都不能只保存在进程内存里。
 
 ## 复习结论
 

@@ -16,7 +16,7 @@ LLM API 是模型服务对外的推理接口。调用方用一次 HTTP 请求提
 
 “无状态”指模型推理本身不保留调用方的会话。第二轮要让模型“记得”第一轮，调用方必须把第一轮的输入、输出和工具结果重新放进请求。多轮对话、工具循环和压缩都由 API 之外的 Harness（负责装配上下文、执行工具、持久化状态的运行框架）完成，见 [Agent Loop](03-agent-loop.md) 与 [Context Engineering](13-context-engineering.md)。
 
-三家都提供服务端保存会话的选项，本质是把“保存并重放历史”搬到服务端：
+三家也都提供服务端保存会话的选项，由服务端保存并重放历史。
 
 | 会话形态 | Anthropic | OpenAI | Google |
 | --- | --- | --- | --- |
@@ -73,7 +73,7 @@ LLM API 只负责一次推理的输入输出合同；工具执行、权限、重
 | 停止字段 | `stop_reason` | `status` + `incomplete_details` | `finish_reason` | `finishReason` |
 | 结构化输出 | `output_config.format` | `text.format` | `response_format` | `responseMimeType` + `responseJsonSchema` |
 
-三家的推理合同相同，差异集中在状态归属。Anthropic Messages 与 Chat Completions 让调用方掌握完整历史；Responses 与 Interactions 把 Item 或 step 存在服务端，调用方只发增量，请求更短、更容易命中缓存，但保留期、删除能力和跨厂商迁移要单独评估。OpenAI 把 Responses 作为新项目推荐接口，Chat Completions 继续支持，Assistants API 已停用；Google 把 Interactions 作为新项目推荐接口，`generateContent` 继续完整支持。依赖服务端会话的系统应在本地保存一份供应商无关的历史副本，服务端 ID 只作为加速手段。
+Anthropic Messages 与 Chat Completions 让调用方掌握完整历史；Responses 与 Interactions 把 Item 或 step 存在服务端，调用方只发增量，请求更短、更容易命中缓存，但保留期、删除能力和跨厂商迁移要单独评估。OpenAI 把 Responses 作为新项目推荐接口，Chat Completions 继续支持，Assistants API 已停用；Google 把 Interactions 作为新项目推荐接口，`generateContent` 继续完整支持。依赖服务端会话的系统应在本地保存一份供应商无关的历史副本，服务端 ID 只作为加速手段。
 
 ## 生成控制：采样参数、输出上限与结构化输出
 
@@ -103,7 +103,7 @@ $T < 1$ 让分布更尖锐，$T > 1$ 让分布更平，$T \to 0$ 接近贪心解
 
 ### 结构化输出靠约束解码
 
-结构化输出（Structured Outputs）让响应严格符合 JSON Schema。三家的实现都属于约束解码（constrained decoding）：服务端把 schema 编译成语法约束，每步采样前屏蔽会让输出偏离语法的 Token，结果在语法上必然可解析。最终回答的写法见上表“结构化输出”一行；工具参数则在工具定义上开启严格模式（Anthropic 与 OpenAI 的 `strict: true`，Gemini 的 `parametersJsonSchema`）。
+结构化输出（Structured Outputs）让响应严格符合 JSON Schema。三家的实现都属于约束解码（constrained decoding），即服务端把 schema 编译成语法约束，每步采样前屏蔽会让输出偏离语法的 Token，结果在语法上必然可解析。最终回答的写法见上表“结构化输出”一行；工具参数则在工具定义上开启严格模式（Anthropic 与 OpenAI 的 `strict: true`，Gemini 的 `parametersJsonSchema`）。
 
 约束解码只保证语法合法。截断会留下不完整 JSON，拒答不产出 schema 内容，金额非负、ID 存在这类业务约束也超出 JSON Schema 能力，这些都要在 Harness 里二次校验。
 
@@ -152,13 +152,13 @@ for await (const event of iterateAnthropicEvents(response, options?.signal)) {
 | 截断 | `max_tokens`、`model_context_window_exceeded` | `incomplete`（`max_output_tokens`） | `length` | `MAX_TOKENS` | 续写、提高上限或压缩 |
 | 拦截或拒答 | `refusal` + `stop_details` | refusal 或 `content_filter` | `content_filter` | `SAFETY` 等 | 回退模型或终止 |
 
-另有两类专用值：Anthropic 的 `pause_turn` 表示服务端工具循环达到迭代上限，原样回传助手内容即可继续；Gemini 的 `MALFORMED_FUNCTION_CALL` 表示工具调用格式错误。pi 的 `mapStopReason` 把 `end_turn` 映射为 stop、`max_tokens` 为 length、`tool_use` 为 toolUse、`refusal` 为 error，遇到未知值直接抛错。厂商会持续增加停止原因，Gemini 的 `FinishReason` 已有二十多种。把未知值默认当成正常结束，Agent 可能把一次截断当成任务完成。
+另有两类专用值。Anthropic 的 `pause_turn` 表示服务端工具循环达到迭代上限，原样回传助手内容即可继续；Gemini 的 `MALFORMED_FUNCTION_CALL` 表示工具调用格式错误。pi 的 `mapStopReason` 把 `end_turn` 映射为 stop、`max_tokens` 为 length、`tool_use` 为 toolUse、`refusal` 为 error，遇到未知值直接抛错。厂商会持续增加停止原因，Gemini 的 `FinishReason` 已有二十多种。把未知值默认当成正常结束，Agent 可能把一次截断当成任务完成。
 
 ## Prompt Caching 与 usage：用量字段就是账单公式
 
 ### 三家的缓存 API 形态
 
-Prompt Caching 复用相同输入前缀在服务端算好的中间状态，降低延迟和输入费用。原理是推理引擎的前缀 KV Cache，见 [KV Cache](02-kv-cache.md)。API 层关心三件事：怎么声明、多久过期、怎么计费。
+Prompt Caching 复用相同输入前缀在服务端算好的中间状态，降低延迟和输入费用。原理是推理引擎的前缀 KV Cache，见 [KV Cache](02-kv-cache.md)。API 层关心的是怎么声明、多久过期、怎么计费。
 
 | 维度 | Anthropic | OpenAI | Google Gemini |
 | --- | --- | --- | --- |
@@ -168,7 +168,7 @@ Prompt Caching 复用相同输入前缀在服务端算好的中间状态，降�
 | 价格 | 写入 1.25×（5 分钟）或 2×（1 小时），读取约 0.1× | 读取 0.1×，GPT-5.6 起写入 1.25× | 命中按折扣价；显式缓存另按 TTL 收存储费 |
 | 用量字段 | `cache_creation_input_tokens`、`cache_read_input_tokens` | `input_tokens_details.cached_tokens` | `cachedContentTokenCount` |
 
-Anthropic 的显式断点把“缓存到哪里”交给调用方。Hermes Agent 的 `system_and_3` 策略用满 4 个断点：一个放在 system prompt，三个放在最后三条非 system 消息，并且在深拷贝上打标记，不改动原始历史。pi 则标在工具数组的最后一个工具和最后一条 user 消息上。两者思路相同：稳定前缀有一个固定读点，增长的尾部有一个随轮次前移的写点。
+Anthropic 的显式断点把“缓存到哪里”交给调用方。Hermes Agent 的 `system_and_3` 策略用满 4 个断点：一个放在 system prompt，三个放在最后三条非 system 消息，并且在深拷贝上打标记，不改动原始历史。pi 则标在工具数组的最后一个工具和最后一条 user 消息上。两种放法都让稳定前缀有一个固定读点，让增长的尾部有一个随轮次前移的写点。
 
 ### 一次调用的成本公式
 
@@ -180,12 +180,12 @@ $$
 
 Anthropic 的 `input_tokens` 只统计最后一个断点之后的未缓存部分，三项输入相加才是总输入；OpenAI 与 Gemini 的输入总数包含缓存命中，缓存部分是子集。跨厂商统计时这是最容易算错的口径。推理 Token 计入输出，分别在 Anthropic `output_tokens_details.thinking_tokens`、OpenAI `output_tokens_details.reasoning_tokens`、Gemini `thoughtsTokenCount` 中单列。
 
-用一个 Agent 循环估算量级：固定前缀（工具 + system）2 万 Token，每轮新增 3 千 Token，共 30 轮，忽略输出。
+用一个 Agent 循环估算量级。固定前缀（工具 + system）2 万 Token，每轮新增 3 千 Token，共 30 轮，忽略输出。
 
 - 不用缓存：第 $k$ 轮输入 $20 + 3k$ 千 Token，合计 $\sum_{k=0}^{29}(20+3k) = 1905$ 千 Token，折合 $1905P$（按千 Token 计）。
 - 5 分钟缓存且每轮都在 TTL 内：首轮写入 20 千（$25P$）；之后每轮读取上一轮全部输入、写入新增 3 千。读取合计 1798 千 × 0.1 ≈ $180P$，写入 87 千 × 1.25 ≈ $109P$，总计约 $314P$。
 
-输入成本降到约六分之一，前提是前缀逐字节不变、相邻两轮间隔短于 TTL。连续多轮 `cache_read` 为 0，说明前缀被悄悄改变了。Anthropic 多数模型的 ITPM 限流不计缓存读取，缓存也提高了有效吞吐。
+只要前缀逐字节不变、相邻两轮间隔短于 TTL，输入成本就降到约六分之一。连续多轮 `cache_read` 为 0，说明前缀被悄悄改变了。Anthropic 多数模型的 ITPM 限流不计缓存读取，缓存也提高了有效吞吐。
 
 ## 限流、错误与重试：生成请求天然不幂等
 
@@ -201,7 +201,7 @@ Anthropic 的 `input_tokens` 只统计最后一个断点之后的未缓存部分
 | 429 且无 `retry-after`（Anthropic 花费上限） | 额度用尽 | 否，重试会一直失败 |
 | 500 / 529 `overloaded_error` / 503 | 内部错误或服务整体过载 | 是，指数退避，必要时切换模型或区域 |
 
-流式响应还有中途错误：HTTP 已返回 200，事件流里出现 `event: error`（如 `overloaded_error`）。已收到的部分输出不完整，不能交给下一轮。
+流式响应还可能中途出错。HTTP 已返回 200，事件流里却出现 `event: error`（如 `overloaded_error`）。已收到的部分输出不完整，不能交给下一轮。
 
 Codex 把错误分成可重试与不可重试两类。上下文超限、额度耗尽、非法请求不可重试；流中断、超时、连接失败、服务端错误可重试。退避从 200 ms 起、每次翻倍，并加 ±10% 抖动，避免客户端同时重试：
 
@@ -223,7 +223,7 @@ pub fn backoff(attempt: u64) -> Duration {
 - 记录厂商返回的请求 ID（Anthropic 的 `request-id` 响应头）用于对账排障。
 - 设置总重试预算和整体截止时间。Anthropic SDK 默认也会重试 408、409、429 与 5xx，与业务层重试叠加时实际次数是两者的乘积，应明确由一层负责。
 
-## Batch API：用延迟换价格与吞吐
+## Batch API：异步批量调用的价格与吞吐
 
 | 维度 | Anthropic Message Batches | OpenAI Batch | Gemini Batch |
 | --- | --- | --- | --- |
@@ -232,7 +232,7 @@ pub fn backoff(attempt: u64) -> Duration {
 | 规模上限 | 10 万个请求或 256 MB | 5 万个请求，文件 200 MB | 内联 20 MB；JSONL 文件 2 GB |
 | 结果对应 | 按 `custom_id`，顺序不保证 | 按 `custom_id`，顺序不保证 | 按请求键 |
 
-批处理适合离线评测、数据标注、批量摘要和回填，不适合交互式 Agent Loop：每轮工具调用都要等上一轮结果，放进 24 小时窗口会让任务几乎停滞。批处理请求同样可以用 Prompt Caching，把共享长前缀放在最前面，两种折扣可以叠加。
+批处理适合离线评测、数据标注、批量摘要和回填，不适合交互式 Agent Loop。每轮工具调用都要等上一轮结果，放进 24 小时窗口会让任务几乎停滞。批处理请求同样可以用 Prompt Caching，把共享长前缀放在最前面，两种折扣可以叠加。
 
 ## 生产约束与失败模式
 
@@ -257,7 +257,7 @@ pub fn backoff(attempt: u64) -> Duration {
 - 429、529、5xx 与额度耗尽如何重试或熔断，退款工具如何在模型重试后只执行一次；
 - 夜间评估如何走 Batch API，并与缓存折扣叠加。
 
-可行方案把厂商协议限定在适配层内部，上层只看到归一后的消息、事件、停止原因和用量；副作用幂等、重试预算和会话持久化放在适配层之上。
+方案还需要说明分层，包括厂商协议是否限定在适配层内部，上层能否只看到归一后的消息、事件、停止原因和用量，副作用幂等、重试预算和会话持久化放在哪一层。
 
 ## 复习结论
 

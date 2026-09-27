@@ -60,13 +60,13 @@ See [FORMS.md](FORMS.md). Run `python scripts/fill_form.py input.pdf fields.json
 | `disable-model-invocation`、`user-invocable`、`context: fork`、`when_to_use` | Claude Code 扩展 | 控制谁能触发、是否在隔离的子 Agent 中运行、补充触发描述 |
 | `agents/openai.yaml` 中的 `allow_implicit_invocation`、`dependencies.tools` | Codex 扩展 | 禁止隐式触发、声明依赖的 MCP 工具，另有展示名和图标等 UI 字段 |
 
-`description` 上限在规范、Anthropic、pi 和 Codex 加载器中都是 1024 字符，Claude Code 把 `description` 与 `when_to_use` 合计截断在 1,536 字符。意图一致：元数据要短到能对所有 Skill 常驻。
+`description` 上限在规范、Anthropic、pi 和 Codex 加载器中都是 1024 字符，Claude Code 把 `description` 与 `when_to_use` 合计截断在 1,536 字符。几处上限的用意相同，元数据要短到能对所有 Skill 常驻。
 
 ### 正文与附带资源
 
-正文没有格式限制，规范建议写步骤、输入输出样例和边界情况，`SKILL.md` 控制在 500 行、正文 5000 token 以内，更长内容拆到 `references/`。引用文件时使用相对 Skill 根目录的路径，并且只引用一层；Anthropic 的编写指南解释了原因：模型遇到多级嵌套引用时可能只用 `head` 预览文件，拿到的是不完整的信息。
+正文没有格式限制，规范建议写步骤、输入输出样例和边界情况，`SKILL.md` 控制在 500 行、正文 5000 token 以内，更长内容拆到 `references/`。引用文件时使用相对 Skill 根目录的路径，并且只引用一层；Anthropic 的编写指南给出的原因是，模型遇到多级嵌套引用时可能只用 `head` 预览文件，拿到的是不完整的信息。
 
-脚本与参考文件的消费方式不同：参考文件被“读”进上下文，脚本被“执行”，只有输出进入上下文。渐进披露省下的 token 主要来自这个区别。
+参考文件被“读”进上下文，脚本则被“执行”，只有输出进入上下文。渐进披露省下的 token 主要来自这个区别。
 
 ## 渐进披露：三层装载与上下文预算
 
@@ -90,7 +90,7 @@ See [FORMS.md](FORMS.md). Run `python scripts/fill_form.py input.pdf fields.json
 本轮触发 2 个： 5,000 + 2 × 4,000 ≈  13,000 token
 ```
 
-全部常驻会在 272k 窗口下吃掉七成以上预算，且大部分内容与本轮无关，还会稀释模型对相关指令的注意。渐进披露让常驻成本只随 Skill 数量小幅线性增长，正文按实际使用付费；L3 让参考文件和数据集留在磁盘上，读到哪个才付哪个的 token。脚本的收益更大：现场生成一段 PDF 字段提取代码要花几百 token 并承担出错风险，执行 `scripts/analyze_form.py` 只消耗命令和输出。
+全部常驻会在 272k 窗口下吃掉七成以上预算，且大部分内容与本轮无关，还会稀释模型对相关指令的注意。渐进披露让常驻成本只随 Skill 数量小幅线性增长，正文按实际使用付费；L3 让参考文件和数据集留在磁盘上，读到哪个才付哪个的 token。脚本省得更多。现场生成一段 PDF 字段提取代码要花几百 token 并承担出错风险，执行 `scripts/analyze_form.py` 只消耗命令和输出。
 
 ### Codex 如何给 L1 设预算
 
@@ -113,11 +113,11 @@ pub fn default_skill_metadata_budget(context_window: Option<i64>) -> SkillMetada
 }
 ```
 
-272k 窗口对应约 5,440 token 的目录预算。超出预算时，`render_skill_lines_from_lines` 分三级降级：先完整渲染；装不下就保留每个 Skill 的名字和路径、按剩余预算截短 description；连“名字 + 路径”都装不下时，按 System → Admin → Repo → User 的作用域顺序保留，其余 Skill 从目录中省略，并向用户提示“禁用不用的 Skill 或插件”。设计判断是：目录溢出时优先保证每个 Skill 可被找到，其次才是描述完整。
+272k 窗口对应约 5,440 token 的目录预算。超出预算时，`render_skill_lines_from_lines` 分三级降级：先完整渲染；装不下就保留每个 Skill 的名字和路径、按剩余预算截短 description；连“名字 + 路径”都装不下时，按 System → Admin → Repo → User 的作用域顺序保留，其余 Skill 从目录中省略，并向用户提示“禁用不用的 Skill 或插件”。按这个顺序，目录溢出时每个 Skill 仍然可被找到，description 的完整性排在其后。
 
 ## 触发机制：模型读 description 做选择
 
-规范的集成指南指出，多数实现由模型自己判断是否激活 Skill，Harness 不做关键词匹配。模型读到 L1 目录，判断某个 description 与任务匹配，再用读文件工具打开 `SKILL.md`，过程与普通工具选择相同，只是选中的是一份说明书。因此 description 承担路由职责：写得含糊，模型无法在上百个候选中选中它；写得过宽，又会在无关任务上误触发。
+规范的集成指南指出，多数实现由模型自己判断是否激活 Skill，Harness 不做关键词匹配。模型读到 L1 目录，判断某个 description 与任务匹配，再用读文件工具打开 `SKILL.md`，过程与普通工具选择相同，只是选中的是一份说明书。因此 description 承担路由职责。写得含糊，模型无法在上百个候选中选中它；写得过宽，又会在无关任务上误触发。
 
 ### 两种激活路径
 
@@ -139,7 +139,7 @@ impl ContextualUserFragment for SkillInstructions {
 }
 ```
 
-隐式路径交给模型：Codex 在 L1 目录后附带使用规则，要求点名或明显匹配时必须使用、使用前完整读完 `SKILL.md`、只打开其直接链接的文件、优先运行已有脚本，并且不得把读取和理解 Skill 指令委托给子 Agent。
+隐式路径由模型决定。Codex 在 L1 目录后附带使用规则，要求点名或明显匹配时必须使用、使用前完整读完 `SKILL.md`、只打开其直接链接的文件、优先运行已有脚本，并且不得把读取和理解 Skill 指令委托给子 Agent。
 
 ### 各实现的触发倾向不同
 
@@ -152,11 +152,11 @@ impl ContextualUserFragment for SkillInstructions {
 | Hermes Agent | `<available_skills>` 索引 | 专用工具 `skills_list`、`skill_view(name, file_path)` | 很强：“部分相关也必须加载，宁可多读” |
 | OpenClaw | `<available_skills>`，含 version | 用读工具打开 `<location>` | 保守：“最多先读一个；没有明确适用的就一个都不读” |
 
-pi 的 `formatSkillsForPrompt` 最接近规范原文：过滤掉 `disable-model-invocation: true` 的 Skill，其余逐条写成 `<skill><name/><description/><location/></skill>`，前面只加三行说明，要求模型在任务匹配时用 `read` 工具加载、按 Skill 目录解析相对路径。
+pi 的 `formatSkillsForPrompt` 最接近规范原文。它过滤掉 `disable-model-invocation: true` 的 Skill，其余逐条写成 `<skill><name/><description/><location/></skill>`，前面只加三行说明，要求模型在任务匹配时用 `read` 工具加载、按 Skill 目录解析相对路径。
 
-Hermes 走“专用工具”路线：`skill_view` 首次调用返回 `SKILL.md` 和 `linked_files` 清单，再传 `file_path` 读取引用文件。Harness 因此能控制返回内容、记录使用次数、检查路径穿越，代价是多一个工具定义。
+Hermes 走“专用工具”路线：`skill_view` 首次调用返回 `SKILL.md` 和 `linked_files` 清单，再传 `file_path` 读取引用文件。Harness 因此能控制返回内容、记录使用次数、检查路径穿越，工具列表里也因此多出一个定义。
 
-Hermes 的“宁可多读”和 OpenClaw 的“最多一个”代表了一个真实取舍（推断）：前者用 token 换召回，适合 Skill 编码了用户偏好和团队约定、漏读代价高的个人助理；后者用召回换上下文纯度，适合 Skill 数量多、跨渠道长期运行、每轮都要控成本的网关型 Agent。
+Hermes 的“宁可多读”和 OpenClaw 的“最多一个”对应两种取舍（推断）。Hermes 多花 token、少漏读，适合 Skill 编码了用户偏好和团队约定、一旦漏读后果较重的个人助理。OpenClaw 让上下文保持干净，但更容易漏掉该用的 Skill，适合 Skill 数量多、跨渠道长期运行、每轮都要控成本的网关型 Agent。
 
 ## 产品落地：同一格式，不同的发现位置与运行环境
 
@@ -184,7 +184,7 @@ Claude API 把 Skill 挂在代码执行容器上，请求里通过 `container.sk
 
 单次请求最多引用 20 个 Skill，自定义 Skill 上传总大小需小于 30 MB。生成的文件通过 Files API 下载。
 
-网络差异直接影响移植：依赖 `pip install` 的脚本在 Claude Code 能跑，在 Claude API 容器里会失败，这类前提应写进 `compatibility`。
+网络差异会直接影响移植。依赖 `pip install` 的脚本在 Claude Code 能跑，在 Claude API 容器里会失败，这类前提应写进 `compatibility`。
 
 ## 与 system prompt、Tool、MCP、Subagent 的分工
 
@@ -198,7 +198,7 @@ Claude API 把 Skill 挂在代码执行容器上，请求里通过 `container.sk
 | 典型内容 | “回答使用中文”“不要修改 main 分支” | `read_file`、`run_tests` | GitHub、Jira、数据库服务 | “按公司模板生成周报”“处理 PDF 表单” | “调研这个模块并返回结论” |
 | 执行隔离 | 无 | 由工具实现决定 | 独立进程或远端服务 | 无，指令与主对话共享窗口 | 独立上下文窗口 |
 
-简记为：Tool 和 MCP 回答“能做什么”，Skill 回答“该怎么做”，Subagent 回答“在哪个上下文里做”，system prompt 回答“始终遵守什么”。常见组合：
+几种机制经常组合使用：
 
 - Skill + MCP：Skill 写明“查询前先用 `BigQuery:bigquery_schema` 取表结构、排除测试账号”，MCP 提供查询工具。Anthropic 要求 Skill 中使用 `ServerName:tool_name` 全限定名；Codex 用 `dependencies.tools` 声明依赖的 MCP Server；MCP 规范也把 “Skills over MCP” 列为扩展方向。
 - Skill + Subagent：Claude Code 的 `context: fork` 让 Skill 在独立子 Agent 中运行，主对话只收结果。Codex 禁止把 Skill 指令的理解委托给子 Agent，避免约束在摘要中丢失。前者委派整个任务，后者限制的是对指令本身的理解，两者不矛盾。
@@ -284,16 +284,16 @@ Skill 里写死的命令、依赖版本和 API 路径会过时。编写指南建
 - 社区 Skill 的审查、扫描、版本固定、项目信任和执行权限如何分工；
 - L1 目录接近预算上限时，合并 Skill、按领域拆成插件还是改用专用激活工具，如何用 token 成本、召回率和维护成本取舍。
 
-合理的方案把 Skill 当作带版本的软件包管理：格式遵循开放规范以获得跨客户端可见性，触发质量靠评测，安全靠来源控制、环境隔离和权限系统共同约束。
+一种做法是把 Skill 当作带版本的软件包来管理。格式遵循开放规范，两个客户端都能发现；触发质量用评测检查；安全由来源控制、环境隔离和权限系统共同约束。
 
 ## 复习结论
 
 - Skill 是由 `SKILL.md`、脚本和参考资料组成的目录，提供过程性知识，不增加模型能力，也不引入新的调用协议。
 - `name` 和 `description` 是规范仅有的必需字段；description 同时承担说明和路由，决定 Skill 能否被正确选中。
 - 渐进披露分三层：目录常驻（每个约 100 token）、正文按触发加载、资源按需读取或执行，脚本只有输出进入上下文。
-- 主流实现由模型读 description 自主激活，也支持 `/name`、`$name` 显式触发；各家触发倾向不同，本质是 token 成本与漏用风险的取舍。
+- 主流实现由模型读 description 自主激活，也支持 `/name`、`$name` 显式触发；各家触发倾向不同，差别在于愿意为少漏用多花多少 token。
 - Tool 和 MCP 提供动作，Skill 提供方法，Subagent 提供隔离的执行上下文，system prompt 提供常驻约束；它们可以组合。
-- 第三方 Skill 应按安装软件对待：审计、固定版本、项目信任、沙箱和权限系统缺一不可。
+- 第三方 Skill 应按安装软件对待：需要审计、固定版本、项目信任、沙箱和权限系统。
 - 已加载的 Skill 需要在上下文压缩中受保护，否则行为会静默退化。
 
 ## 参考

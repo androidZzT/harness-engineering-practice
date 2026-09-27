@@ -13,7 +13,7 @@ Subagent（子 Agent）是主 Agent 在运行中创建的 Agent 实例。它拥�
 它的核心价值有两个：
 
 - **上下文隔离**：搜索、读文件、跑命令产生的中间内容留在子 Agent 窗口里，主 Agent 的窗口不被只看一次的材料填满。
-- **结果压缩**：几十轮工具调用的结论被写成一条最终消息，主 Agent 读到的是结论而不是原始轨迹。
+- **结果压缩**：几十轮工具调用的结论被写成一条最终消息，主 Agent 只读到结论，看不到原始轨迹。
 
 权限收紧、换便宜模型、并行加速都建立在这两点之上。一个子任务如果既不产生大量噪声，也不能用一条摘要交付，就没有委派的理由。
 
@@ -25,13 +25,13 @@ Subagent（子 Agent）是主 Agent 在运行中创建的 Agent 实例。它拥�
 | Handoff（控制权转交） | Handoff 后接手方直接面对用户；Subagent 结束后控制权回到主 Agent |
 | [Multi-Agent](11-multi-agent.md) | Subagent 是一次委派的机制，多 Agent 讨论多个 Agent 的系统级编排 |
 
-判断标准是任务所有权：主 Agent 始终持有它，子 Agent 只交付中间产物。子 Agent 一旦能直接对用户说话、能决定整体任务何时结束，就已经不是 Subagent 结构了。
+区分的依据是任务所有权。主 Agent 始终持有任务，子 Agent 只交付中间产物。子 Agent 一旦能直接对用户说话、能决定整体任务何时结束，就已经不是 Subagent 结构了。
 
 ## 委派协议：工具调用进，最终消息出
 
 ![Subagent 委派：一次工具调用换一个隔离上下文](diagrams/core-subagent-delegation.svg)
 
-图中左侧是父 Agent 上下文，中间是 Harness（模型外负责执行工具、管理状态和权限的运行时）的委派边界，右侧是子 Agent 的独立上下文。父子之间只有两条数据通道：进去的是任务描述，出来的是最终消息。
+图中左侧是父 Agent 上下文，中间是 Harness（模型外负责执行工具、管理状态和权限的运行时）的委派边界，右侧是子 Agent 的独立上下文。父子之间只有两条数据通道，进去的是任务描述，出来的是最终消息。
 
 ### 一次委派的消息样例
 
@@ -55,15 +55,15 @@ Subagent（子 Agent）是主 Agent 在运行中创建的 Agent 实例。它拥�
 
 这样设计有三个原因：
 
-1. **复用工具协议**。模型已经会发工具调用、会等结果，委派不需要新的对话原语；并行委派就是在一次响应里发多个调用。
-2. **输入是自然语言任务描述**。子 Agent 不继承父对话时，任务描述是它了解背景的唯一渠道。Claude Agent SDK 文档明确说，父到子传递的唯一内容是 Agent 工具的 prompt 字符串，路径、错误信息和已做决策都要写进去。
-3. **输出只取最终消息**。中间轨迹留在子 Agent 的转录文件里，父 Agent 只拿到最后一条消息和用于续跑的 agent ID。
+1. 复用工具协议。模型已经会发工具调用、会等结果，委派不需要新的对话原语；并行委派就是在一次响应里发多个调用。
+2. 输入是自然语言任务描述。子 Agent 不继承父对话时，任务描述是它了解背景的唯一渠道。Claude Agent SDK 文档明确说，父到子传递的唯一内容是 Agent 工具的 prompt 字符串，路径、错误信息和已做决策都要写进去。
+3. 输出只取最终消息。中间轨迹留在子 Agent 的转录文件里，父 Agent 只拿到最后一条消息和用于续跑的 agent ID。
 
 ### 子 Agent 启动时看到什么
 
-以 Claude Code 为例，非 Fork 子 Agent 的初始上下文包括：自己的 system prompt 与环境信息、父 Agent 写的任务描述、项目规则文件 CLAUDE.md（可用 `omitClaudeMd` 关闭，内置 Explore 和 Plan 默认跳过）、继承或筛选后的工具定义，以及 `skills` 字段列出的预加载 Skill。它看不到父 Agent 的 system prompt、对话历史和工具结果。
+以 Claude Code 为例，非 Fork 子 Agent 的初始上下文包括自己的 system prompt 与环境信息、父 Agent 写的任务描述、项目规则文件 CLAUDE.md（可用 `omitClaudeMd` 关闭，内置 Explore 和 Plan 默认跳过）、继承或筛选后的工具定义，以及 `skills` 字段列出的预加载 Skill。它看不到父 Agent 的 system prompt、对话历史和工具结果。
 
-Fork 模式则复制父对话再开始，省掉重新交代背景的成本，还能复用父对话预热的 Prompt Cache，代价是把父窗口的噪声一起带过去。Codex 的 `spawn_agent` 用 `fork_context` 参数切换两种模式。
+Fork 模式则复制父对话再开始，省掉重新交代背景的成本，还能复用父对话预热的 Prompt Cache，但父窗口里的噪声也会一起带过去。Codex 的 `spawn_agent` 用 `fork_context` 参数切换两种模式。
 
 ### 隔离与压缩的 Token 账本
 
@@ -79,9 +79,9 @@ Fork 模式则复制父对话再开始，省掉重新交代背景的成本，还
 T_total ≈ T_parent_turns + Σ_{i=1..n} (P + H_i) + Σ output_i
 ```
 
-对主窗口，Subagent 是压缩器：读了 80k Token 代码的子任务，回填可能只有 1–3k，主 Agent 后续每一轮都少带这 80k。对总花费，它是放大器：子 Agent 每轮重发前缀和累积轨迹，还要重新读主 Agent 已读过的背景。Anthropic 给出的量级是 Agent 约为普通对话的 4 倍 Token，多 Agent 系统约 15 倍（详见 [Multi-Agent](11-multi-agent.md)）。
+从主窗口看，读了 80k Token 代码的子任务，回填可能只有 1–3k，主 Agent 后续每一轮都少带这 80k。从总花费看，子 Agent 每轮重发前缀和累积轨迹，还要重新读主 Agent 已读过的背景，总量会上升。Anthropic 给出的量级是 Agent 约为普通对话的 4 倍 Token，多 Agent 系统约 15 倍（详见 [Multi-Agent](11-multi-agent.md)）。
 
-所以 Subagent 省的是主窗口的上下文预算，不是总 Token。窗口是否紧张、主 Agent 后续还要跑多久，决定了这笔交换是否划算。
+委派是否划算，取决于主窗口是否紧张、主 Agent 后续还要跑多久。
 
 ## 子 Agent 的配置面
 
@@ -98,15 +98,19 @@ T_total ≈ T_parent_turns + Σ_{i=1..n} (P + H_i) + Σ output_i
 
 三个配置点需要单独说明：
 
-- **描述决定调度质量**。主 Agent 靠读 `description` 判断是否委派、委派给谁。描述写得泛，主 Agent 要么从不调用，要么什么都往里塞。这些描述常驻主 Agent 的工具说明，Claude Code 在自定义描述合计超过 15,000 Token 时会告警。
-- **工具白名单是硬约束**。prompt 里写“不要修改文件”，模型仍可能调用 Edit；把 Edit 从工具集删掉，模型根本看不到它。只读分析类子 Agent 应当只给 Read、Grep、Glob。
-- **权限只能收紧**。Codex 先套用角色配置，再用父回合的实际审批策略、工作目录和权限配置覆盖，角色文件无法放宽权限。Hermes Agent 默认自动拒绝子线程里的危险命令审批，因为后台线程里没有人能及时响应弹窗。
+- 描述决定调度质量。主 Agent 靠读 `description` 判断是否委派、委派给谁。描述写得泛，主 Agent 要么从不调用，要么什么都往里塞。这些描述常驻主 Agent 的工具说明，Claude Code 在自定义描述合计超过 15,000 Token 时会告警。
+- 工具白名单是硬约束。prompt 里写“不要修改文件”，模型仍可能调用 Edit；把 Edit 从工具集删掉，模型根本看不到它。只读分析类子 Agent 应当只给 Read、Grep、Glob。
+- 权限只能收紧。Codex 先套用角色配置，再用父回合的实际审批策略、工作目录和权限配置覆盖，角色文件无法放宽权限。Hermes Agent 默认自动拒绝子线程里的危险命令审批，因为后台线程里没有人能及时响应弹窗。
 
 ## 前台、后台与并行执行
 
-执行方式有三种：前台同步，父 Agent 阻塞在这次调用上，结果即 `tool_result`（Claude Code 前台子 Agent、OpenAI `as_tool`、DeerFlow `task`）；后台异步，父 Agent 立即拿到句柄继续工作，完成后以通知进入后续轮次（Claude Code 后台子 Agent、Hermes 顶层委派）；显式等待，父 Agent 拿到句柄后按需调用等待工具（Codex `spawn_agent` + `wait_agent`）。
+执行方式有三种：
 
-并行在协议上很简单：模型在一次响应里发出多个委派调用，Harness 并发执行，独立子任务的完成时间取决于最慢的那个。
+- 前台同步：父 Agent 阻塞在这次调用上，结果即 `tool_result`（Claude Code 前台子 Agent、OpenAI `as_tool`、DeerFlow `task`）。
+- 后台异步：父 Agent 立即拿到句柄继续工作，完成后以通知进入后续轮次（Claude Code 后台子 Agent、Hermes 顶层委派）。
+- 显式等待：父 Agent 拿到句柄后按需调用等待工具（Codex `spawn_agent` + `wait_agent`）。
+
+协议层面的并行很简单，模型在一次响应里发出多个委派调用，Harness 并发执行，独立子任务的完成时间取决于最慢的那个。
 
 后台模式的难点是结果如何回到对话。已发出的历史不能改，否则会破坏 Prompt Cache 的前缀，所以完成通知只能作为新一轮输入追加。Hermes Agent 把完成事件放进队列，等 Agent 空闲时转成新的一轮，模块注释说明这是为了保护 Prompt Cache；Codex 在子 Agent 进入终态时，向父会话注入一段不触发新回合的 `<subagent_notification>` 用户消息。
 
@@ -120,13 +124,13 @@ T_total ≈ T_parent_turns + Σ_{i=1..n} (P + H_i) + Σ output_i
 | DeerFlow | `task` 工具 | 新建 system + human 两条消息 | 不允许嵌套 | 单次响应最多 3 个 | `Task Succeeded. Result: ...` 字符串 |
 | Hermes Agent | `delegate_task` | 全新 Agent，跳过上下文文件与记忆 | 1 | 3 个 | 每个任务的摘要、状态、Token、耗时、工具轨迹 |
 
-共性是：委派都是工具调用，默认不继承父对话，回传最终消息而非轨迹，都对嵌套和并发设限。差异集中在三处：
+各家的委派都是工具调用，默认不继承父对话，只回传最终消息，也都对嵌套和并发设限。差异集中在三处：
 
-- **嵌套**：Claude Code 默认允许三层，Codex、Hermes 默认一层，DeerFlow 直接从子 Agent 工具集拿掉 `task`。
-- **等待语义**：多数实现是一次阻塞调用；Codex 把创建和等待拆成两个工具，父 Agent 可以在等待之间做别的事，或只等最先完成的那个。
-- **回传结构**：从带前缀的字符串到带状态、用量、工具轨迹的结构化对象。结构越清楚，父 Agent 越容易区分完成、失败和超时。
+- 嵌套：Claude Code 默认允许三层，Codex、Hermes 默认一层，DeerFlow 直接从子 Agent 工具集拿掉 `task`。
+- 等待语义：多数实现是一次阻塞调用；Codex 把创建和等待拆成两个工具，父 Agent 可以在等待之间做别的事，或只等最先完成的那个。
+- 回传结构：从带前缀的字符串到带状态、用量、工具轨迹的结构化对象。结构越清楚，父 Agent 越容易区分完成、失败和超时。
 
-OpenAI Agents SDK 的 `as_tool` 与 Handoff 的区别在控制权：前者由管理者 Agent 保持对话并汇总专家输出，后者由专家接管对话。pi 则是反例，README 明确写“No sub-agents”，只在扩展示例中用独立 pi 进程实现 `subagent` 工具，可见委派也能完全放在 Harness 之外实现。
+OpenAI Agents SDK 的 `as_tool` 与 Handoff 的区别在控制权。前者由管理者 Agent 保持对话并汇总专家输出，后者由专家接管对话。pi 则是反例，README 明确写“No sub-agents”，只在扩展示例中用独立 pi 进程实现 `subagent` 工具，说明委派也可以完全放在 Harness 之外实现。
 
 ### Codex：创建时检查深度，最后覆盖权限
 
@@ -156,11 +160,11 @@ if args.fork_context {
 apply_spawn_agent_runtime_overrides(&mut config, turn.as_ref())?;
 ```
 
-- **深度**：根会话为 0，子 Agent 为 1，`DEFAULT_AGENT_MAX_DEPTH = 1`，默认配置下子 Agent 不能再派生。超限时告诉模型“自己完成任务”，而不是让回合失败。
-- **Fork**：完整复制父历史的子 Agent 必须沿用父 Agent 的类型和模型。Fork 时只保留 system、developer、user 消息和 assistant 的最终回答，丢弃推理、工具调用与输出。
-- **权限**：运行时覆盖排在角色配置之后，角色文件无法把权限调得比父 Agent 宽。
+- 深度：根会话为 0，子 Agent 为 1，`DEFAULT_AGENT_MAX_DEPTH = 1`，默认配置下子 Agent 不能再派生。超限时返回给模型的是“自己完成任务”，回合本身不失败。
+- Fork：完整复制父历史的子 Agent 必须沿用父 Agent 的类型和模型。Fork 时只保留 system、developer、user 消息和 assistant 的最终回答，丢弃推理、工具调用与输出。
+- 权限：运行时覆盖排在角色配置之后，角色文件无法把权限调得比父 Agent 宽。
 
-结果用状态机表达：`AgentStatus` 有 `PendingInit`、`Running`、`Interrupted`、`Completed(Option<String>)`、`Errored(String)`、`Shutdown`、`NotFound`，`Completed` 携带最后一条消息。`wait_agent` 接收一组 ID，任一进入终态即返回，超时默认 30 秒，限制在 10 秒到 1 小时之间。`close_agent` 的说明特别提醒：已完成但未关闭的子 Agent 仍占并发名额。
+结果用状态机表达：`AgentStatus` 有 `PendingInit`、`Running`、`Interrupted`、`Completed(Option<String>)`、`Errored(String)`、`Shutdown`、`NotFound`，`Completed` 携带最后一条消息。`wait_agent` 接收一组 ID，任一进入终态即返回，超时默认 30 秒，限制在 10 秒到 1 小时之间。`close_agent` 的说明提醒，已完成但未关闭的子 Agent 仍占并发名额。
 
 ### DeerFlow：同步外观下的后台执行
 
@@ -225,7 +229,7 @@ DELEGATE_BLOCKED_TOOLS = frozenset(
 )
 ```
 
-这六项对应四类风险：递归派生、绕过主 Agent 与用户交互、污染共享状态、以父 Agent 名义产生外部副作用。任何 Subagent 实现都应对这四类能力逐项表态。
+这六项对应四类风险，即递归派生、绕过主 Agent 与用户交互、污染共享状态、以父 Agent 名义产生外部副作用。任何 Subagent 实现都应对这四类能力逐项表态。
 
 ## 设计取舍：何时委派，委派什么
 
@@ -239,9 +243,9 @@ DELEGATE_BLOCKED_TOOLS = frozenset(
 | 权限 | 需要比主 Agent 更窄的工具集 | 需要完整能力 |
 | 延迟 | 能接受子 Agent 重新收集背景 | 用户在等快速的小改动 |
 
-最典型的委派对象是只读调研：代码探索、文档检索、日志分析、多角度审查。它们噪声大、结果可摘要，而且不写文件，不会与主 Agent 的修改冲突。
+最典型的委派对象是只读调研，例如代码探索、文档检索、日志分析、多角度审查。它们噪声大、结果可摘要，而且不写文件，不会与主 Agent 的修改冲突。
 
-模型本身的委派倾向也要约束。Codex 的工具说明写着：除非用户或 AGENTS.md、Skill 明确要求，否则不要创建子 Agent，“要求深入彻底”不算授权。Claude Agent SDK 文档提到 Opus 5 比早期模型更愿意委派，建议同时设置深度、并发和预算上限。
+模型本身的委派倾向也要约束。Codex 的工具说明要求，除非用户或 AGENTS.md、Skill 明确要求，否则不要创建子 Agent，“要求深入彻底”不算授权。Claude Agent SDK 文档提到 Opus 5 比早期模型更愿意委派，建议同时设置深度、并发和预算上限。
 
 ### 交接时的两次有损压缩
 
@@ -251,13 +255,13 @@ DELEGATE_BLOCKED_TOOLS = frozenset(
 - **最终消息**：结论、证据（路径与行号、命令输出、URL）、置信度、未完成事项。
 - **大块产物走文件**：完整报告写入约定路径，最终消息只放摘要和路径。
 
-Fork 能减少第一次损失，代价是带入噪声并失去换模型的自由。推断：依赖大量隐含背景的任务适合 Fork，边界清楚的调研适合空白启动。
+Fork 能减少第一次损失，但会带入噪声，也不能再换模型。推断：依赖大量隐含背景的任务适合 Fork，边界清楚的调研适合空白启动。
 
 ### 子 Agent 不能向用户澄清
 
-主流实现都拿走了子 Agent 与用户交互的能力：Claude Code 对所有子 Agent 过滤 `AskUserQuestion`，Hermes 禁用 `clarify`，DeerFlow 内置子 Agent 禁用 `ask_clarification`。子 Agent 常在后台并行运行，各自弹问题会打乱交互，主 Agent 也无法掌握任务状态。
+主流实现都拿走了子 Agent 与用户交互的能力。Claude Code 对所有子 Agent 过滤 `AskUserQuestion`，Hermes 禁用 `clarify`，DeerFlow 内置子 Agent 禁用 `ask_clarification`。子 Agent 常在后台并行运行，各自弹问题会打乱交互，主 Agent 也无法掌握任务状态。
 
-所以任务描述中的歧义只能由子 Agent 自行处理。应在子 Agent 的 system prompt 里约定：遇到无法消解的歧义就停止，返回“阻塞 + 需要确认的问题”，由主 Agent 决定自己回答、问用户还是重新委派。Claude Code 可以用 `SendMessage` 带 agent ID 续跑子 Agent 并保留其完整历史，这让补充信息后继续执行的成本较低。
+所以任务描述中的歧义只能由子 Agent 自行处理。可以在子 Agent 的 system prompt 里约定，遇到无法消解的歧义就停止，返回“阻塞 + 需要确认的问题”，由主 Agent 决定自己回答、问用户还是重新委派。Claude Code 可以用 `SendMessage` 带 agent ID 续跑子 Agent 并保留其完整历史，这让补充信息后继续执行的成本较低。
 
 ## 生产约束与失败模式
 
@@ -273,9 +277,9 @@ Fork 能减少第一次损失，代价是带入噪声并失去换模型的自由
 | 预算失控 | 大量委派导致总花费不可预期 | Agent SDK 的 `max_budget_usd`：到达后拒绝新委派并停止后台子 Agent |
 | 资源泄漏 | 已完成子 Agent 占着并发名额 | 显式关闭（Codex `close_agent`）或完成后自动回收 |
 
-**结果校验**分三层。一是格式校验，由代码检查输出结构，例如 Codex 的 CSV 批量任务 `spawn_agents_on_csv` 支持 `output_schema`，工作 Agent 必须调用 `report_agent_job_result` 上报，未上报视为失败。二是证据校验，结论必须带出处，主 Agent 抽查原文。三是独立复核，高风险结论交给另一个只读子 Agent，或用测试、类型检查、构建等确定性工具验证。Hermes 在工具说明里写得很直白：子 Agent 摘要是 SELF-REPORTS，不是已验证事实。
+结果校验分三层。一是格式校验，由代码检查输出结构，例如 Codex 的 CSV 批量任务 `spawn_agents_on_csv` 支持 `output_schema`，工作 Agent 必须调用 `report_agent_job_result` 上报，未上报视为失败。二是证据校验，结论必须带出处，主 Agent 抽查原文。三是独立复核，高风险结论交给另一个只读子 Agent，或用测试、类型检查、构建等确定性工具验证。Hermes 的工具说明直接写明，子 Agent 摘要是 SELF-REPORTS，不是已验证事实。
 
-**可观测性**要求子 Agent 轨迹虽不进主上下文，但必须进日志：父子关系、子 Agent 类型和模型、轮数、Token 与费用、耗时、终止原因、最终消息。Claude Agent SDK 在子 Agent 消息上标注 `parent_tool_use_id`，DeerFlow 在调用链中传递 `trace_id` 并把子 Agent 用量汇入父运行记录。缺少这层关联，排查“这次任务为什么花了十倍 Token”时只能看到主 Agent 的一行委派调用。
+子 Agent 轨迹虽不进主上下文，但必须进日志，记录父子关系、子 Agent 类型和模型、轮数、Token 与费用、耗时、终止原因、最终消息。Claude Agent SDK 在子 Agent 消息上标注 `parent_tool_use_id`，DeerFlow 在调用链中传递 `trace_id` 并把子 Agent 用量汇入父运行记录。缺少这层关联，排查“这次任务为什么花了十倍 Token”时只能看到主 Agent 的一行委派调用。
 
 ## 架构推演
 
@@ -289,13 +293,13 @@ Fork 能减少第一次损失，代价是带入噪声并失去换模型的自由
 - 修复阶段如何避免文件冲突，如何校验报告的漏洞确实存在、如何发现漏报；
 - 需要哪些观测字段，才能事后解释每个服务的审计成本与结论来源。
 
-合理的方案会把扫描做成只读、可并行、输出结构化的子 Agent，把确认与修复留在主 Agent 或少量串行的写入型子 Agent 中；主窗口只保存每个服务的结构化结论和证据路径，完整报告写入文件。评价方案时，看它能否同时回答窗口预算、总费用和结论可信度三个问题。
+方案还需要说明扫描子 Agent 是否只读、可并行、输出结构化，确认与修复放在主 Agent 还是写入型子 Agent 中，主窗口保存哪些结论、完整报告写到哪里，以及窗口预算、总费用和结论可信度三者如何同时满足。
 
 ## 复习结论
 
 - Subagent 是主 Agent 通过工具调用创建、拥有独立上下文、完成后只交回最终消息的 Agent 实例，任务所有权始终在主 Agent。
 - 核心价值是上下文隔离和结果压缩。它省下的是主窗口预算，总 Token 通常上升。
-- 委派协议统一为任务描述进、最终消息出。默认不继承父对话；Fork 复制父对话以减少交接损失，代价是带入噪声。
+- 委派协议统一为任务描述进、最终消息出。默认不继承父对话；Fork 复制父对话以减少交接损失，但会带入噪声。
 - 配置面包括描述、system prompt、工具集、权限、模型和运行边界。工具白名单是硬约束，权限只能收紧。
 - 前台模式阻塞等待，后台模式以追加的新一轮输入回传结果以保护 Prompt Cache，Codex 把创建与等待拆成独立工具。
 - 各家共性是工具化委派、默认隔离、摘要回传和上限控制，差异在嵌套深度、等待语义和回传结构。

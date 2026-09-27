@@ -26,9 +26,9 @@ Agent = Model + Harness
 
 Anthropic 在评测文章中还区分了两个容易混淆的词：agent harness（也叫 scaffold）是“让模型作为 Agent 行动的系统”；evaluation harness 是端到端运行评测、记录每一步并评分汇总的基础设施。本文讨论前者，评测作为它的组成部分出现。
 
-三门工程学科是包含关系：[Prompt Engineering](12-prompt-engineering.md) 管写给模型的指令，[Context Engineering](13-context-engineering.md) 管每轮窗口放什么，Harness Engineering 包含这两者，再加上循环、工具、权限、沙箱、状态、观测、评测、成本和人工介入。
+三门工程学科是包含关系。[Prompt Engineering](12-prompt-engineering.md) 管写给模型的指令，[Context Engineering](13-context-engineering.md) 管每轮窗口放什么，Harness Engineering 包含这两者，再加上循环、工具、权限、沙箱、状态、观测、评测、成本和人工介入。
 
-两组数字说明它为什么值得单独成为一门工程：LangChain 固定模型只改 Harness，榜单位置从 30 名左右升至前 5；Anthropic 的实验中，单 Agent 花 9 美元、20 分钟产出无法运行的应用，完整 Harness 花 200 美元、6 小时产出可用产品。模型决定上限，Harness 决定上限能兑现多少。
+把它单独作为一门工程，是因为 Harness 的差异会直接反映在结果上。LangChain 固定模型只改 Harness，榜单位置从 30 名左右升至前 5。Anthropic 的实验中，单 Agent 花 9 美元、20 分钟产出无法运行的应用，完整 Harness 花 200 美元、6 小时产出可用产品。
 
 ## Harness 的组成清单
 
@@ -59,11 +59,11 @@ Anthropic 在评测文章中还区分了两个容易混淆的词：agent harness
 
 ### 权限与沙箱：两道互补的边界
 
-权限回答“这个动作能不能做”，在执行前拦截；沙箱回答“做了最多影响到哪里”，在执行中限制。只有权限，被批准的命令仍可能越界；只有沙箱，Agent 仍可能在沙箱内删掉全部成果。
+权限在执行前判断一个动作能不能做，沙箱在执行中限制动作最多影响到哪里。只有权限时，被批准的命令仍可能越界。只靠沙箱，Agent 也可能在沙箱内删掉全部成果。
 
-Codex 把两者编排在同一个工具执行器里：先按审批策略决定是否请求用户确认，再选择沙箱执行，沙箱拒绝时可以请求升级后重试。审批策略有 `UnlessTrusted`、`OnRequest`、`Granular`、`Never` 几档；沙箱在 macOS 上用 Seatbelt，在 Linux 上用 bubblewrap 与 Landlock，并提供只读、工作区可写、完全访问三种模式。Claude Code 的官方文档描述了同样的思路：Bash 沙箱由操作系统强制文件和网络边界，让大多数命令无需逐条审批。
+Codex 把两者编排在同一个工具执行器里：先按审批策略决定是否请求用户确认，再选择沙箱执行，沙箱拒绝时可以请求升级后重试。审批策略有 `UnlessTrusted`、`OnRequest`、`Granular`、`Never` 几档；沙箱在 macOS 上用 Seatbelt，在 Linux 上用 bubblewrap 与 Landlock，并提供只读、工作区可写、完全访问三种模式。Claude Code 的官方文档也是这个思路，Bash 沙箱由操作系统强制文件和网络边界，让大多数命令无需逐条审批。
 
-这也是 [Prompt Engineering](12-prompt-engineering.md) 中 prompt injection 一节的落点：权限和沙箱决定系统允许发生什么。
+[Prompt Engineering](12-prompt-engineering.md) 中 prompt injection 一节提到的防御，就落在这里的权限和沙箱上，它们决定系统允许发生什么。
 
 ### Hooks 与生命周期中间件：确定性逻辑的插入点
 
@@ -71,23 +71,23 @@ Hook（钩子）是 Harness 在固定生命周期点（工具调用前后、压�
 
 Claude Code 的 `PreToolUse`、`UserPromptSubmit` 等事件可以阻断操作；Codex 的 hooks 覆盖 `PreToolUse`、`PermissionRequest`、`PostToolUse`、`PreCompact`、`SessionStart`、`Stop` 等，Stop hook 阻断时追加提示并让本轮继续；LangChain Deep Agents 以中间件包裹模型和工具调用。
 
-LangChain 实验里的两个中间件很有代表性：`PreCompletionChecklistMiddleware` 在 Agent 准备结束时要求对照任务规格验证一次；`LoopDetectionMiddleware` 统计对同一文件的反复编辑，超过阈值就提示换思路。
+LangChain 的实验用了两个中间件。`PreCompletionChecklistMiddleware` 在 Agent 准备结束时要求对照任务规格验证一次；`LoopDetectionMiddleware` 统计对同一文件的反复编辑，超过阈值就提示换思路。
 
 ### 可观测性：先能看见，才能改进
 
-失败可能发生在模型决策、上下文、工具 schema、权限、工具实现或外部依赖任何一层，没有 trace 时它们在最终输出上一模一样。一条可用的 trace 要串起每轮的输入构成、模型输出与 tool call、工具参数与结果、审批决定、耗时和费用。四个开源项目的观测实现见下文对比表。LangChain 的改进流程直接把 trace 当输入：用一个 Agent Skill 拉取实验 trace，派生多个分析 Agent 并行归纳失败模式，再决定改哪个旋钮。
+失败可能发生在模型决策、上下文、工具 schema、权限、工具实现或外部依赖任何一层，没有 trace 时它们在最终输出上一模一样。一条可用的 trace 要串起每轮的输入构成、模型输出与 tool call、工具参数与结果、审批决定、耗时和费用。四个开源项目的观测实现见下文对比表。LangChain 的改进流程直接把 trace 当输入，先用一个 Agent Skill 拉取实验 trace，再派生多个分析 Agent 并行归纳失败模式，最后决定改哪个旋钮。
 
 ### 评测：度量的是模型与 Harness 的组合
 
-task、trial、grader、transcript、outcome 等术语和 `pass^k` 口径已在 [Prompt Engineering](12-prompt-engineering.md) 展开。放到 Harness 层面补充两点：评测对象是“模型 + Harness”的组合，同一模型换 Harness 成绩可差十几个百分点，报告成绩必须同时说明 Harness 配置；评分尽量看 outcome，即环境最终状态，而不是 Agent 自述。
+task、trial、grader、transcript、outcome 等术语和 `pass^k` 口径已在 [Prompt Engineering](12-prompt-engineering.md) 展开。放到 Harness 层面还要补充两点。评测对象是“模型 + Harness”的组合，同一模型换 Harness 成绩可差十几个百分点，报告成绩必须同时说明 Harness 配置。评分尽量看 outcome，即环境最终状态，不以 Agent 的自述为准。
 
 ### 成本与限流：给循环加上预算
 
-Agent Loop 天然有失控风险：工具失败后重试、上下文膨胀后压缩、压缩后又重新读取。Harness 要为每个任务设置多维预算：轮次（Hermes Agent 默认 `max_iterations` 为 90，耗尽时记录 `budget_exhausted`）、Token 与费用、墙钟时间、按阶段分配的推理强度（LangChain 在规划和验证阶段用最高档，实现阶段用次高档），以及子 Agent 并发数和供应商速率限制下的退避重试。
+Agent Loop 容易失控，工具失败后会重试，上下文膨胀后会压缩，压缩后又重新读取。Harness 要为每个任务设置多维预算，包括轮次（Hermes Agent 默认 `max_iterations` 为 90，耗尽时记录 `budget_exhausted`）、Token 与费用、墙钟时间、按阶段分配的推理强度（LangChain 在规划和验证阶段用最高档，实现阶段用次高档），以及子 Agent 并发数和供应商速率限制下的退避重试。
 
 ### 人工介入：设计成状态，而不是异常
 
-人工介入有四种形态：执行前审批、信息不足时澄清、执行中转向（steer）、强制中断。要点是把“等待人”建模成状态机里的正常状态：可持久化、可超时、恢复后从原处继续，审批界面展示即将执行的真实参数。
+人工介入有四种形态：执行前审批、信息不足时澄清、执行中转向（steer）、强制中断。Harness 应把“等待人”建模成状态机里的正常状态，可持久化、可超时、恢复后从原处继续。审批界面展示即将执行的真实参数。
 
 ## 四个开源 Harness 的设计差异
 
@@ -120,15 +120,15 @@ if !needs_follow_up {
 }
 ```
 
-pi 的循环更薄：`while (hasMoreToolCalls || pendingMessages.length > 0)` 内依次注入转向消息、流式获取模型回复、遇到 `error` 或 `aborted` 立即返回、执行工具调用并回填。它有一处值得借鉴的保护：模型输出因长度上限被截断时，所有工具调用的参数都可能不完整，循环直接把它们判为失败而不执行。
+pi 的循环更薄：`while (hasMoreToolCalls || pendingMessages.length > 0)` 内依次注入转向消息、流式获取模型回复、遇到 `error` 或 `aborted` 立即返回、执行工具调用并回填。它还有一处保护，模型输出因长度上限被截断时，所有工具调用的参数都可能不完整，循环直接把它们判为失败而不执行。
 
-Codex 在核心里提供了停止前的 hook 插入点；pi 的核心循环没有这道关口，需要完成前检查时由扩展或上层自行实现。两者差别在于默认值由谁决定。
+Codex 在核心里提供了停止前的 hook 插入点；pi 的核心循环没有这道关口，需要完成前检查时由扩展或上层自行实现。
 
 ### 取舍的两极
 
-从表中可以看出一条主轴：安全与编排能力是内置在核心里，还是交给使用者组装。
+对比表里最明显的分歧，是安全与编排能力放在核心里，还是交给使用者组装。
 
-- Codex 在“内置”一端：沙箱、审批、子 Agent、观测都由核心提供，默认偏保守，代价是核心庞大。
+- Codex 在“内置”一端：沙箱、审批、子 Agent、观测都由核心提供，默认偏保守，核心代码也因此庞大。
 - pi 在“最小核心”一端：README 明确不提供子 Agent 和权限弹窗，建议容器运行或用扩展自建，安全边界由使用者负责。
 - Hermes Agent 重在跨会话变好：回合结束后派生后台审查，判断是否保存或更新技能与记忆，把 [Skills](07-skills.md) 和 [Memory](09-memory.md) 放在循环出口。
 - OpenClaw 重在多入口常驻：Gateway 连接多个聊天渠道，审批可转发到渠道，差异集中在循环外层的会话、渠道和故障切换。
@@ -165,13 +165,13 @@ OpenAI 的 Harness engineering 文章把这件事称为 agent legibility（对 A
 - 每个工作树可运行可观测：Agent 能为每个 git worktree 启动应用，通过 Chrome DevTools 协议截图和操作界面，查询该实例的日志、指标和 trace。
 - 持续偿还技术债：“黄金原则”写成机械规则，后台任务定期扫描偏差并开出小的重构 PR。
 
-Anthropic 的长任务方案从另一个方向补上了跨会话的部分：初始化会话把全部功能写进 JSON 清单并标为 failing，写好 `init.sh` 和进度文件并提交；之后每个会话先读进度和 git log、跑一遍基础端到端测试，再只推进一个功能。功能清单用 JSON 保存，因为文章观察到模型改写 JSON 时比改写 Markdown 更少出现不当覆盖。
+Anthropic 的长任务方案从另一个方向补上了跨会话的部分。初始化会话把全部功能写进 JSON 清单并标为 failing，写好 `init.sh` 和进度文件并提交；之后每个会话先读进度和 git log、跑一遍基础端到端测试，再只推进一个功能。功能清单用 JSON 保存，因为文章观察到模型改写 JSON 时比改写 Markdown 更少出现不当覆盖。
 
 ## Harness 与模型能力的协同演进
 
 ### 每个组件都编码了一个假设
 
-Anthropic 的长任务 Harness 设计文章给出一个判断：Harness 的每个组件都编码了一个关于“模型自己做不到什么”的假设，值得反复压力测试。文中新一代模型能在更长时段内保持连贯后，作者删掉了把工作切成冲刺（sprint）的结构。据此可以审查 Harness：为每个组件写下它补偿的能力缺口，模型升级后逐项验证。
+Anthropic 的长任务 Harness 设计文章认为，Harness 的每个组件都编码了一个关于“模型自己做不到什么”的假设，值得反复压力测试。文中新一代模型能在更长时段内保持连贯后，作者删掉了把工作切成冲刺（sprint）的结构。按这个思路审查 Harness，可以为每个组件写下它补偿的能力缺口，模型升级后逐项验证。
 
 | 组件 | 它假设模型不会 | 模型增强后的信号 | 处理方式 |
 | --- | --- | --- | --- |
@@ -180,16 +180,16 @@ Anthropic 的长任务 Harness 设计文章给出一个判断：Harness 的每�
 | 预填充强制格式 | 按指令输出指定格式 | 厂商已移除该能力（见 [12](12-prompt-engineering.md)） | 改用结构化输出 |
 | 反复强调的“必须调用工具” | 主动使用工具 | 新模型出现过度触发 | 降低措辞强度 |
 
-“上下文重置”一行来自同一篇文章：某一代模型有明显的“上下文焦虑”，接近窗口上限时倾向提前收尾，原地压缩给不了干净的起点，于是改用上下文重置加交接文件。这类补偿随模型代际而变，去留要靠评测决定。
+“上下文重置”一行也来自这篇文章。某一代模型有明显的“上下文焦虑”，接近窗口上限时倾向提前收尾，原地压缩给不了干净的起点，于是改用上下文重置加交接文件。这类补偿随模型代际而变，去留要靠评测决定。
 
 ### 哪些组件不应随能力增强而删除
 
-并非所有组件都在补偿能力缺口。有一类组件表达的是约束和责任，与模型多聪明无关：
+另有一类组件表达的是约束和责任，与模型能力高低无关：
 
-- 权限、沙箱和审批：它们限制的是影响范围和授权，模型越强，能造成的影响反而越大。
+- 权限、沙箱和审批：限制影响范围和授权。模型越强，能造成的影响越大。
 - 审计和 trace：用于事后追责和复现，属于组织要求。
 - 评测：用于度量，模型升级时正需要它来判断哪些组件可以删。
-- 成本与限流：由预算决定，不由能力决定。
+- 成本与限流：额度来自预算，与模型能力无关。
 
 推断：Harness 会随模型演进变“薄”，但变薄的是能力补偿层，约束层和度量层会保留甚至加厚。
 
@@ -222,7 +222,7 @@ LangChain 的文章指出，Claude Code、Codex 这类产品的模型是在 Harn
 - 完成前检查、循环检测和预算上限放在哪些生命周期点，超限后降级、停止还是升级人工；
 - trace 与评测集怎样用来决定改 prompt、工具还是中间件，以及模型升级时删除哪些组件。
 
-合格的方案让每项判断落到可验证的信号上：完成靠 outcome，安全靠权限和沙箱，改进靠 trace 和评测，组件增删靠逐项压力测试。
+方案还需要说明完成、安全、改进和组件增删这几类判断，分别依据哪些可验证的信号。
 
 ## 复习结论
 

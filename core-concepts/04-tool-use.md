@@ -10,7 +10,7 @@
 
 Tool Use（也称 function calling）指模型在回复中输出包含工具名和参数的结构化调用请求，由应用或服务端执行后把结果交还模型继续生成。模型不运行代码，也不知道工具是否真的执行了，它只看到下一轮请求里的结果。
 
-这条边界决定了工程分工：模型负责“选哪个工具、填什么参数”，Harness 负责“能不能执行、在哪执行、结果怎么交回”。[Agent Loop](03-agent-loop.md) 讲的是这个往返如何反复推进，本篇讲单次往返本身。
+按这条边界分工，模型选择工具并填写参数，Harness 决定能否执行、在哪里执行，以及结果如何交回。[Agent Loop](03-agent-loop.md) 讲的是这个往返如何反复推进，本篇讲单次往返本身。
 
 按执行位置，工具分三类：
 
@@ -30,7 +30,7 @@ MCP（Model Context Protocol）是把外部工具以统一协议接入 Harness �
 
 ### Anthropic Messages API
 
-工具定义放在请求的 `tools` 数组里（名称须匹配 `^[a-zA-Z0-9_-]{1,128}$`）。模型决定调用时，响应 `stop_reason` 为 `tool_use`，assistant 内容里出现 `tool_use` 块；应用执行后，在下一条 **user** 消息里回填 `tool_result`：
+工具定义放在请求的 `tools` 数组里（名称须匹配 `^[a-zA-Z0-9_-]{1,128}$`）。模型决定调用时，响应 `stop_reason` 为 `tool_use`，assistant 内容里出现 `tool_use` 块；应用执行后，在下一条 user 消息里回填 `tool_result`：
 
 ```json
 { "name": "get_weather", "description": "Get the current weather for a given location.",
@@ -49,7 +49,7 @@ Anthropic 没有专门的 `tool` 角色，工具调用和结果都是 user / ass
 
 ### OpenAI Responses API 与 Chat Completions
 
-Responses API 的工具定义带 `type: "function"`，参数 schema 字段叫 `parameters`。模型输出的是独立的 `function_call` 输出项，`arguments` 是**JSON 字符串**而不是对象；应用回填 `function_call_output` 输入项，用 `call_id` 配对：
+Responses API 的工具定义带 `type: "function"`，参数 schema 字段叫 `parameters`。模型输出的是独立的 `function_call` 输出项，`arguments` 是 JSON 字符串，不是对象；应用回填 `function_call_output` 输入项，用 `call_id` 配对：
 
 ```json
 { "type": "function_call", "call_id": "call_weather", "name": "get_weather",
@@ -60,13 +60,13 @@ Responses API 的工具定义带 `type: "function"`，参数 schema 字段叫 `p
 
 对推理模型，响应中与工具调用一起返回的 reasoning 项必须随工具结果一起传回。Chat Completions 格式则是 assistant 消息带 `tool_calls` 数组、结果用 `role: "tool"` 加 `tool_call_id` 回填，Hermes Agent 的主循环就使用这种格式。
 
-两家的差异已列在图底部的表格中，共性更重要：**调用意图与结果通过 id 配对，结果回填后由模型继续生成**。Harness 的历史裁剪、压缩和恢复都必须维护这个配对关系。
+两家的差异见图底部的表格。两家都用 id 配对调用意图与结果，结果回填后由模型继续生成，Harness 的历史裁剪、压缩和恢复都必须维护这个配对关系。
 
 ## 模型如何“决定”调用工具
 
-工具调用是训练出来的输出格式，不是模型内部的函数调度器。Anthropic 文档公开了注入方式：传入 `tools` 后，API 构造一段特殊 system prompt，包含格式说明、JSON Schema 形式的工具定义、用户 system prompt 和工具配置；模型按训练过的格式输出调用，API 再解析成 `tool_use` 块。这段注入本身要花 token（Claude Opus 5.5 为 286，Opus 4.7 在 `auto` 下为 675），另加全部工具定义。
+工具调用是训练出来的输出格式，模型内部并没有函数调度器。Anthropic 文档公开了注入方式。传入 `tools` 后，API 构造一段特殊 system prompt，包含格式说明、JSON Schema 形式的工具定义、用户 system prompt 和工具配置；模型按训练过的格式输出调用，API 再解析成 `tool_use` 块。这段注入本身要花 token（Claude Opus 5.5 为 286，Opus 4.7 在 `auto` 下为 675），另加全部工具定义。
 
-因此“决定调用”是条件生成：模型根据请求、上下文和工具描述预测下一段输出是文字还是调用。由此有两个推论：
+所以“决定调用”是一次条件生成，模型根据请求、上下文和工具描述，预测下一段输出是文字还是调用。这带来两个后果：
 
 - 工具描述是影响调用质量的最大因素。Anthropic 把“极其详细的描述”列为首要实践，建议每个工具至少三到四句话，说明做什么、何时该用何时不该用、每个参数的含义和限制。
 - 缺参数时模型可能自行编造。文档举例：只问“天气怎么样”，Claude Sonnet 可能填上 “New York, NY”，Claude Opus 更倾向于追问。
@@ -81,11 +81,11 @@ Responses API 的工具定义带 `type: "function"`，参数 schema 字段叫 `p
 | 禁止调用 | `none` | `none` |
 | 限定可用子集 | — | `allowed_tools` |
 
-Anthropic 在 `any` / `tool` 模式下会预填 assistant 消息强制输出调用，模型因此不会在 `tool_use` 前写说明文字。强制模式也有限制：手动开启 extended thinking 时不支持 `any` 和 `tool`；Claude Opus 5.5 等模型完全不支持强制调用，官方建议改用 `auto` 加 strict。修改 `tool_choice` 还会使已缓存的消息块失效，缓存机制见 [KV Cache](02-kv-cache.md)。
+Anthropic 在 `any` / `tool` 模式下会预填 assistant 消息强制输出调用，模型因此不会在 `tool_use` 前写说明文字。强制模式也有限制。手动开启 extended thinking 时不支持 `any` 和 `tool`；Claude Opus 5.5 等模型完全不支持强制调用，官方建议改用 `auto` 加 strict。修改 `tool_choice` 还会使已缓存的消息块失效，缓存机制见 [KV Cache](02-kv-cache.md)。
 
 ## JSON Schema 与 strict 模式
 
-非 strict 模式下 schema 只是提示，模型可能把整数写成 `"2"` 或漏掉必填字段。strict 模式用**语法约束采样**（grammar-constrained sampling）：服务端把 schema 编译成语法，解码时只允许符合语法的 token。Anthropic 保证 strict 工具的 `input` 符合 schema、工具名有效。
+非 strict 模式下 schema 只是提示，模型可能把整数写成 `"2"` 或漏掉必填字段。strict 模式使用语法约束采样（grammar-constrained sampling），服务端把 schema 编译成语法，解码时只允许符合语法的 token。Anthropic 保证 strict 工具的 `input` 符合 schema、工具名有效。
 
 并非所有 JSON Schema 特性都能编译成语法，因此有额外要求：
 
@@ -96,15 +96,15 @@ Anthropic 在 `any` / `tool` 模式下会预填 assistant 消息强制输出调�
 | 默认行为 | 需显式开启 | Responses API 会尽量把 schema 规范化为 strict，无法兼容时回退为非 strict |
 | 编译缓存 | 编译后的 schema 最多缓存 24 小时 | — |
 
-strict 保证的是**形状**而非**语义**：路径是否越界、金额是否超限、用户是否有权限，仍要在执行前校验。外部接入的 schema 也常不满足 strict 要求：Codex 把 MCP 工具转换成 Responses API 工具时，统一写入 `strict: false`；Pi 则在执行前用 TypeBox 校验，并先用 `Value.Convert` 做类型转换，把 `"2"` 这类输入转成 schema 要求的类型。
+strict 只保证参数形状，不保证业务语义。路径是否越界、金额是否超限、用户是否有权限，仍要在执行前校验。外部接入的 schema 也常不满足 strict 要求。Codex 把 MCP 工具转换成 Responses API 工具时，统一写入 `strict: false`；Pi 则在执行前用 TypeBox 校验，并先用 `Value.Convert` 做类型转换，把 `"2"` 这类输入转成 schema 要求的类型。
 
 ## 并行工具调用
 
 两家 API 默认都允许模型在一次回复里发出多个工具调用。Anthropic 用 `tool_choice` 内的 `disable_parallel_tool_use: true` 关闭（`auto` 下最多一个，`any` / `tool` 下恰好一个），OpenAI 用 `parallel_tool_calls: false` 关闭。
 
-API 只负责让模型一次说出多个意图，不规定执行顺序。Anthropic 文档明确：可以并发、可以按顺序、也可以混合，但所有结果要放在下一条 user 消息里一起回填。如果顺序执行时前一个失败、后一个没跑，也要给后一个回填错误结果，例如 `"Not executed: the preceding write_file call failed."`。
+API 只负责让模型一次说出多个意图，不规定执行顺序。Anthropic 文档写明，这些调用可以并发执行、顺序执行或混合执行，但所有结果要放在下一条 user 消息里一起回填。如果顺序执行时前一个失败、后一个没跑，也要给后一个回填错误结果，例如 `"Not executed: the preceding write_file call failed."`。
 
-是否真的并发执行，是 Harness 的安全决策。三个实现的做法：
+是否真的并发执行，由 Harness 根据安全性决定。三个实现的做法如下：
 
 | 实现 | 并发策略 |
 | --- | --- |
@@ -140,13 +140,13 @@ Hermes 的判定更细。任一调用参数无法解析就整批退回顺序执�
 Anthropic 的服务端工具调用以 `server_tool_use` 块出现，id 前缀为 `srvtoolu_`，结果块（如 `web_search_tool_result`）紧随其后。两个边界情况会影响 Agent Loop 的实现：
 
 - **`pause_turn`**：服务端循环在长任务中暂停，应用要把 assistant 内容原样发回，并保留同样的 `tools`，才能继续。
-- **客户端与服务端工具混在同一批调用中**：API 不执行服务端工具，直接以 `stop_reason: "tool_use"` 返回。应用执行客户端工具后，下一条 user 消息里**只能**放 `tool_result` 块，服务端工具会在下一次请求开头执行；追加文本会被视为轮次结束，导致 400 错误。
+- **客户端与服务端工具混在同一批调用中**：API 不执行服务端工具，直接以 `stop_reason: "tool_use"` 返回。应用执行客户端工具后，下一条 user 消息里只能放 `tool_result` 块，服务端工具会在下一次请求开头执行；追加文本会被视为轮次结束，导致 400 错误。
 
 OpenAI Responses API 的托管工具包括 `web_search`、`file_search`、`code_interpreter`、`computer_use`、`image_generation`、`shell`、`tool_search` 和远程 `mcp`，以各自的输出项出现在响应中。Anthropic 的 programmatic tool calling 让模型在 code execution 容器里写代码批量调用工具（工具用 `allowed_callers` 声明允许的调用方），把多次往返压缩成一段代码执行。
 
 ## 工具设计：Agent-Computer Interface
 
-SWE-agent 论文提出 ACI（Agent-Computer Interface，面向 Agent 的计算机接口）：人用 IDE，Agent 也需要专门设计的接口。它用定制的文件查看、编辑和搜索命令在 SWE-bench 上取得 12.5% 的 pass@1。Anthropic《Building effective agents》给了一个具体例子：模型在切换目录后频繁写错相对路径，把工具改成**只接受绝对路径**后错误消失，这就是 poka-yoke（防错设计）。
+SWE-agent 论文提出 ACI（Agent-Computer Interface，面向 Agent 的计算机接口）：人用 IDE，Agent 也需要专门设计的接口。它用定制的文件查看、编辑和搜索命令在 SWE-bench 上取得 12.5% 的 pass@1。Anthropic《Building effective agents》给了一个具体例子：模型在切换目录后频繁写错相对路径，把工具改成只接受绝对路径后，错误消失了。这种做法叫 poka-yoke（防错设计）。
 
 Anthropic《Writing effective tools for agents》的原则可以归纳为下表：
 
@@ -160,13 +160,13 @@ Anthropic《Writing effective tools for agents》的原则可以归纳为下表�
 | 可执行的错误信息 | 说明错在哪、如何修正，必要时给出正确输入示例 | 模型据此自我纠正 |
 | 用评测驱动迭代 | 用真实任务评估，让模型分析失败并改写描述 | 优化后的工具优于人工初版 |
 
-OpenAI function calling 文档补充了两条：不要让模型填写应用已知的参数（如当前用户 ID），总是一起调用的函数应合并为一个。这些原则的前提是：工具的调用方是一个按 token 付费、上下文有限、会被模糊描述误导的模型。
+OpenAI function calling 文档补充了两条：不要让模型填写应用已知的参数（如当前用户 ID），总是一起调用的函数应合并为一个。这些原则针对的调用方是模型，它按 token 付费，上下文有限，还容易被模糊的描述误导。
 
 ## 可靠性与安全：从调用意图到受控执行
 
 ![工具调用的执行管线](diagrams/core-tool-use-pipeline.svg)
 
-模型给出的调用是请求，不是命令。图中每道关卡都可以拒绝，拒绝同样以错误结果回填，保证调用与结果成对；左侧是各关卡的开源实现示例。
+模型给出的调用只是请求。图中每道关卡都可以拒绝它，拒绝同样以错误结果回填，保证调用与结果成对；左侧是各关卡的开源实现示例。
 
 ### 按副作用分级
 
@@ -183,9 +183,9 @@ OpenAI 的指南建议按只读/可写、可逆性、权限范围和财务影响
 
 具体机制：
 
-- **超时与取消**：取消信号要传到子进程；Codex 对未进入终态的工具返回带耗时的“已中止”结果。
-- **幂等**：推断上可由 tool call id 派生幂等键，重试或恢复时据此去重。
-- **不可信结果**：网页、邮件、第三方响应要留在 `tool_result` 块里，不拼进 system prompt 或普通 user 文本，以降低间接提示注入风险。
+- 超时与取消：取消信号要传到子进程；Codex 对未进入终态的工具返回带耗时的“已中止”结果。
+- 幂等：推断上可由 tool call id 派生幂等键，重试或恢复时据此去重。
+- 不可信结果：网页、邮件、第三方响应要留在 `tool_result` 块里，不拼进 system prompt 或普通 user 文本，以降低间接提示注入风险。
 
 ### 权限、审批与沙箱
 
@@ -228,7 +228,7 @@ Pi 把同一职责开放为扩展点：`beforeToolCall` 钩子在参数校验之
 
 每个工具定义都占上下文，也增加选择难度。Anthropic 文档给出的量级：同时接入 GitHub、Slack、Sentry、Grafana、Splunk 五个服务，工具定义约 55k token；可用工具超过 30 到 50 个后，选择准确率开始下降。OpenAI 建议一轮开始时可用函数少于 20 个，并说明这只是软建议。
 
-解决思路是**按需加载**：请求里仍然声明全部工具，但大部分标记为延迟加载，模型先看到一个搜索工具，搜到后才把完整定义放进上下文。
+常见解法是按需加载。请求里仍然声明全部工具，但大部分标记为延迟加载，模型先看到一个搜索工具，搜到后才把完整定义放进上下文。
 
 | 维度 | Anthropic tool search | OpenAI tool search |
 | --- | --- | --- |
@@ -257,8 +257,8 @@ ToolSpec::Function(mut tool) => {
 | --- | --- | --- | --- |
 | 参数约束 | 非 strict + 运行时校验 | strict 约束解码 | strict 消除格式错误，但限制 schema 表达力，外部 schema 难以满足 |
 | 执行位置 | 客户端工具 | 服务端工具 | 服务端省实现和往返，但数据、合规、定制性受限 |
-| 并发 | 全部顺序 | 按副作用分类并发 | 并发降低延迟，前提是准确识别冲突 |
-| 工具目录 | 全部预加载 | 搜索 + 延迟加载 | 延迟加载省上下文、提升选择准确率，代价是多一次搜索往返和漏检风险 |
+| 并发 | 全部顺序 | 按副作用分类并发 | 并发降低延迟，但要能准确识别冲突 |
+| 工具目录 | 全部预加载 | 搜索 + 延迟加载 | 延迟加载省上下文、提升选择准确率，但多一次搜索往返，也可能漏检 |
 
 ## 生产约束与失败模式
 
@@ -283,7 +283,7 @@ ToolSpec::Function(mut tool) => {
 - 退款超时或进程崩溃后如何避免重复退款、确认调用是否生效；
 - 如何用真实工单轨迹评测并迭代工具描述与返回格式。
 
-方案要把“模型可以请求什么”和“系统允许执行什么”分开设计：前者少而清晰，服务选择准确率；后者完整且强制，服务资金与数据安全，中间由校验、策略、审批和幂等衔接。
+方案需要分别说明模型可以请求什么、系统允许执行什么。模型可见的工具影响选择准确率，应当少而清晰。执行侧的约束关系到资金与数据安全，需要完整并强制执行。两者之间靠校验、策略、审批和幂等衔接。
 
 ## 复习结论
 
